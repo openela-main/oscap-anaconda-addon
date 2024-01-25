@@ -3,7 +3,7 @@
 
 Name:                 oscap-anaconda-addon
 Version:              1.2.1
-Release:              12%{?dist}
+Release:              14%{?dist}
 Summary:              Anaconda addon integrating OpenSCAP to the installation process
 
 License:              GPLv2+
@@ -26,6 +26,7 @@ Patch5:               oscap-anaconda-addon-1.3.0-better_archive_handling-PR_220.
 Patch6:               oscap-anaconda-addon-1.3.0-clicking_nocrash-PR_221.patch
 Patch7:               oscap-anaconda-addon-1.3.0-fix_content_paths-PR_225.patch
 Patch8:               oscap-anaconda-addon-null-http_content_url-PR_232.patch
+Patch9:               oscap-anaconda-addon-1.2.2-tar-extraction-PR_249.patch
 
 BuildArch:            noarch
 BuildRequires:        make
@@ -59,6 +60,7 @@ content.
 %patch6 -p1
 %patch7 -p1
 %patch8 -p1
+%patch9 -p1
 # NOTE CONCERNING TRANSLATION PATCHES
 # When preparing translation patches, don't consider that some languages are unsupported -
 # we aim to include all applicable translation texts to the appropriate patch.
@@ -80,6 +82,13 @@ make install DESTDIR=%{buildroot}
 %doc COPYING ChangeLog README.md
 
 %changelog
+* Wed Aug 02 2023 Jan Černý <jcerny@redhat.com> - 1.2.1-14
+- Rebuild after tests update
+
+* Wed Jul 19 2023 Jan Černý <jcerny@redhat.com> - 1.2.1-13
+- Fix tar file extraction (rhbz#2219408)
+- Update translations (rhbz#2189572)
+
 * Wed Feb 08 2023 Matej Tyc <matyc@redhat.com> - 1.2.1-12
 - Update translations
   Resolves: rhbz#2139743

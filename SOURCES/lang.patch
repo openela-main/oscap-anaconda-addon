@@ -1,6 +1,6 @@
 diff -U3 -N -r a/po/de.po b/po/de.po
 --- a/po/de.po	2021-07-30 15:17:14.000000000 +0200
-+++ b/po/de.po	2023-02-08 14:33:27.481666055 +0100
++++ b/po/de.po	2023-07-19 13:30:03.838518879 +0200
 @@ -1,11 +1,12 @@
  # Ludek Janda <ljanda@redhat.com>, 2019. #zanata, 2021.
 +# Ettore Atalan <atalanttore@googlemail.com>, 2021, 2022.
@@ -49,7 +49,7 @@ diff -U3 -N -r a/po/de.po b/po/de.po
  
 diff -U3 -N -r a/po/fi.po b/po/fi.po
 --- a/po/fi.po	2021-07-30 15:17:14.000000000 +0200
-+++ b/po/fi.po	2023-02-08 14:33:27.483666070 +0100
++++ b/po/fi.po	2023-07-19 13:30:03.838518879 +0200
 @@ -1,7 +1,7 @@
  # SOME DESCRIPTIVE TITLE.
  # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
@@ -91,7 +91,7 @@ diff -U3 -N -r a/po/fi.po b/po/fi.po
  #: ../org_fedora_oscap/rule_handling.py:554
 diff -U3 -N -r a/po/fr.po b/po/fr.po
 --- a/po/fr.po	2021-07-30 15:17:14.000000000 +0200
-+++ b/po/fr.po	2023-02-08 14:33:27.483666070 +0100
++++ b/po/fr.po	2023-07-19 13:30:03.838518879 +0200
 @@ -8,45 +8,47 @@
  # Ludek Janda <ljanda@redhat.com>, 2018. #zanata
  # Ludek Janda <ljanda@redhat.com>, 2019. #zanata
@@ -199,7 +199,7 @@ diff -U3 -N -r a/po/fr.po b/po/fr.po
  #: ../org_fedora_oscap/gui/spokes/oscap.py:201
 diff -U3 -N -r a/po/hr.po b/po/hr.po
 --- a/po/hr.po	1970-01-01 01:00:00.000000000 +0100
-+++ b/po/hr.po	2023-02-08 14:33:27.483666070 +0100
++++ b/po/hr.po	2023-07-19 13:30:03.838518879 +0200
 @@ -0,0 +1,329 @@
 +# SOME DESCRIPTIVE TITLE.
 +# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
@@ -532,12 +532,13 @@ diff -U3 -N -r a/po/hr.po b/po/hr.po
 +msgstr "_Preuzmi"
 diff -U3 -N -r a/po/hu.po b/po/hu.po
 --- a/po/hu.po	2021-07-30 15:17:14.000000000 +0200
-+++ b/po/hu.po	2023-02-08 14:33:27.483666070 +0100
-@@ -7,21 +7,22 @@
++++ b/po/hu.po	2023-07-19 13:30:03.838518879 +0200
+@@ -7,21 +7,23 @@
  # Teknős Ferenc <teknos.ferenc@gmail.com>, 2018. #zanata
  # Teknős Ferenc <teknos.ferenc@gmail.com>, 2019. #zanata
  # Teknős Ferenc <teknos.ferenc@gmail.com>, 2020. #zanata
 +# Hoppár Zoltán <hopparz@gmail.com>, 2022.
++# Dankaházi (ifj.) István <dankahazi.istvan@gmail.com>, 2023.
  msgid ""
  msgstr ""
  "Project-Id-Version: PACKAGE VERSION\n"
@@ -547,8 +548,8 @@ diff -U3 -N -r a/po/hu.po b/po/hu.po
 -"Last-Translator: Teknős Ferenc <teknos.ferenc@gmail.com>\n"
 -"Language-Team: Hungarian (http://www.transifex.com/projects/p/oscap-anaconda-"
 -"addon/language/hu/)\n"
-+"PO-Revision-Date: 2022-09-25 07:19+0000\n"
-+"Last-Translator: Hoppár Zoltán <hopparz@gmail.com>\n"
++"PO-Revision-Date: 2023-05-12 16:20+0000\n"
++"Last-Translator: Dankaházi (ifj.) István <dankahazi.istvan@gmail.com>\n"
 +"Language-Team: Hungarian <https://translate.fedoraproject.org/projects/"
 +"oscap-anaconda-addon/rhel8-branch/hu/>\n"
  "Language: hu\n"
@@ -558,11 +559,11 @@ diff -U3 -N -r a/po/hu.po b/po/hu.po
 -"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 -"X-Generator: Zanata 4.6.2\n"
 +"Plural-Forms: nplurals=2; plural=n != 1;\n"
-+"X-Generator: Weblate 4.14.1\n"
++"X-Generator: Weblate 4.15.2\n"
  
  #: ../org_fedora_oscap/common.py:326
  #, python-brace-format
-@@ -129,7 +130,7 @@
+@@ -129,7 +131,7 @@
  "service '%s' has been added to the list of services to be added to the "
  "firewall"
  msgstr ""
@@ -571,7 +572,7 @@ diff -U3 -N -r a/po/hu.po b/po/hu.po
  "listájához"
  
  #: ../org_fedora_oscap/rule_handling.py:1010
-@@ -137,7 +138,7 @@
+@@ -137,7 +139,7 @@
  #, python-format
  msgid ""
  "port '%s' has been added to the list of ports to be added to the firewall"
@@ -580,7 +581,16 @@ diff -U3 -N -r a/po/hu.po b/po/hu.po
  
  #: ../org_fedora_oscap/rule_handling.py:1017
  #: ../org_fedora_oscap/rule_handling.py:1068
-@@ -220,8 +221,7 @@
+@@ -194,7 +196,7 @@
+ #. title of the spoke (will be displayed on the hub)
+ #: ../org_fedora_oscap/gui/spokes/oscap.py:201
+ msgid "_Security Policy"
+-msgstr "_Biztonsági házirend"
++msgstr "_Biztonsági szabályzat"
+ 
+ #. the first status provided
+ #: ../org_fedora_oscap/gui/spokes/oscap.py:229
+@@ -220,8 +222,7 @@
  
  #: ../org_fedora_oscap/gui/spokes/oscap.py:790
  msgid "Invalid or unsupported content URL, please enter a different one."
@@ -590,9 +600,18 @@ diff -U3 -N -r a/po/hu.po b/po/hu.po
  
  #: ../org_fedora_oscap/gui/spokes/oscap.py:798
  msgid "Failed to fetch content. Enter a different URL, please."
+@@ -263,7 +264,7 @@
+ #. available
+ #: ../org_fedora_oscap/gui/spokes/oscap.py:887
+ msgid " or enter data stream content or archive URL below:"
+-msgstr "vagy adjon meg adathalmazt, vagy archiv URL-t alább:"
++msgstr " vagy adjon meg adathalmazt, vagy archiv URL-t alább:"
+ 
+ #: ../org_fedora_oscap/gui/spokes/oscap.py:891 tmp/oscap.glade.h:12
+ msgid ""
 diff -U3 -N -r a/po/ja.po b/po/ja.po
 --- a/po/ja.po	2021-07-30 15:17:14.000000000 +0200
-+++ b/po/ja.po	2023-02-08 14:33:27.483666070 +0100
++++ b/po/ja.po	2023-07-19 13:30:03.838518879 +0200
 @@ -1,6 +1,6 @@
 -# Ludek Janda <ljanda@redhat.com>, 2017. #zanata
 -# Ludek Janda <ljanda@redhat.com>, 2018. #zanata
@@ -818,7 +837,7 @@ diff -U3 -N -r a/po/ja.po b/po/ja.po
  msgid "Error fetching and loading content"
 diff -U3 -N -r a/po/ko.po b/po/ko.po
 --- a/po/ko.po	2021-07-30 15:17:14.000000000 +0200
-+++ b/po/ko.po	2023-02-08 14:33:27.483666070 +0100
++++ b/po/ko.po	2023-07-19 13:30:03.838518879 +0200
 @@ -1,13 +1,14 @@
  # Ludek Janda <ljanda@redhat.com>, 2018. #zanata
  # Ludek Janda <ljanda@redhat.com>, 2020. #zanata
@@ -867,7 +886,7 @@ diff -U3 -N -r a/po/ko.po b/po/ko.po
  msgid "The integrity check of the security content failed."
 diff -U3 -N -r a/po/si.po b/po/si.po
 --- a/po/si.po	2021-07-30 15:17:14.000000000 +0200
-+++ b/po/si.po	2023-02-08 14:33:27.484666077 +0100
++++ b/po/si.po	2023-07-19 13:30:03.838518879 +0200
 @@ -7,13 +7,16 @@
  "Project-Id-Version: PACKAGE VERSION\n"
  "Report-Msgid-Bugs-To: \n"
@@ -899,7 +918,7 @@ diff -U3 -N -r a/po/si.po b/po/si.po
  msgid "Fetching content data"
 diff -U3 -N -r a/po/sv.po b/po/sv.po
 --- a/po/sv.po	2021-07-30 15:17:14.000000000 +0200
-+++ b/po/sv.po	2023-02-08 14:33:27.484666077 +0100
++++ b/po/sv.po	2023-07-19 13:30:03.838518879 +0200
 @@ -1,12 +1,12 @@
 -# Göran Uddeborg <goeran@uddeborg.se>, 2019. #zanata, 2020.
 +# Göran Uddeborg <goeran@uddeborg.se>, 2019. #zanata, 2020, 2021.
@@ -980,7 +999,7 @@ diff -U3 -N -r a/po/sv.po b/po/sv.po
  msgid "Fetching content data"
 diff -U3 -N -r a/po/zh_CN.po b/po/zh_CN.po
 --- a/po/zh_CN.po	2021-07-30 15:17:14.000000000 +0200
-+++ b/po/zh_CN.po	2023-02-08 14:33:27.484666077 +0100
++++ b/po/zh_CN.po	2023-07-19 13:30:03.838518879 +0200
 @@ -1,41 +1,43 @@
 -# Ludek Janda <ljanda@redhat.com>, 2018. #zanata
 -# Ludek Janda <ljanda@redhat.com>, 2020. #zanata

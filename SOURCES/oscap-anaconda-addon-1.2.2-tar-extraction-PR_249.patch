@@ -1,0 +1,32 @@
+From 6ac75d5052fff5a7d4b7e249ef198ccecd1f86a4 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Mat=C4=9Bj=20T=C3=BD=C4=8D?= <matyc@redhat.com>
+Date: Mon, 17 Jul 2023 17:08:54 +0200
+Subject: [PATCH] Make tar extraction safer
+
+See also https://bugzilla.redhat.com/show_bug.cgi?id=2218875
+---
+ org_fedora_oscap/common.py | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/org_fedora_oscap/common.py b/org_fedora_oscap/common.py
+index 05829ce..b27276e 100644
+--- a/org_fedora_oscap/common.py
++++ b/org_fedora_oscap/common.py
+@@ -360,7 +360,7 @@ def extract_data(archive, out_dir, ensure_has_files=None):
+                 raise ExtractionError(msg)
+ 
+         utils.ensure_dir_exists(out_dir)
+-        zfile.extractall(path=out_dir)
++        zfile.extractall(path=out_dir, filter="data")
+         result = [utils.join_paths(out_dir, info.filename) for info in zfile.filelist]
+         zfile.close()
+     elif archive.endswith(".tar"):
+@@ -418,7 +418,7 @@ def _extract_tarball(archive, out_dir, ensure_has_files, alg):
+             raise ExtractionError(msg)
+ 
+     utils.ensure_dir_exists(out_dir)
+-    tfile.extractall(path=out_dir)
++    tfile.extractall(path=out_dir, filter="data")
+     result = [utils.join_paths(out_dir, member.path) for member in tfile.getmembers()]
+     tfile.close()
+ 

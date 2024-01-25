@@ -1,0 +1,25 @@
+From 4cc8f52662e14d2fb7323313af00b56ed8455aaa Mon Sep 17 00:00:00 2001
+From: Mustafa Gezen <mustafa@rockylinux.org>
+Date: Mon, 15 Mar 2021 19:30:09 +0100
+Subject: [PATCH] Use openela-release
+
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index dc8e9a0..1d27364 100644
+--- a/Makefile
++++ b/Makefile
+@@ -8,7 +8,7 @@ TESTS = tests \
+ 
+ DEFAULT_INSTALL_OF_PO_FILES ?= yes
+ 
+-OSVERSION := $(shell grep -o " [0-9]\{1,\}" /etc/redhat-release | sed "s/ //g")
++OSVERSION := $(shell grep -o " [0-9]\{1,\}" /etc/openela-release | sed "s/ //g")
+ ifeq ($(OSVERSION),7)
+ 	PYVERSION = ""
+ else
+-- 
+2.29.2
+

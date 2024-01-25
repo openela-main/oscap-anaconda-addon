@@ -1,0 +1,32 @@
+From 56806b88b139d62276e8522bb3daf7d4fb02df84 Mon Sep 17 00:00:00 2001
+From: Matej Tyc <matyc@redhat.com>
+Date: Fri, 15 Oct 2021 15:05:55 +0200
+Subject: [PATCH] Represent unselected profile by an empty string
+
+None can't be passed via the DBUS interface.
+---
+ org_fedora_oscap/gui/spokes/oscap.py | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/org_fedora_oscap/gui/spokes/oscap.py b/org_fedora_oscap/gui/spokes/oscap.py
+index 4425757..36c8d7a 100644
+--- a/org_fedora_oscap/gui/spokes/oscap.py
++++ b/org_fedora_oscap/gui/spokes/oscap.py
+@@ -244,7 +244,7 @@ def __init__(self, data, storage, payload):
+         self.__old_root_pw = None
+ 
+         # used to check if the profile was changed or not
+-        self._active_profile = None
++        self._active_profile = ""
+ 
+         # prevent multiple simultaneous data fetches
+         self._fetching = False
+@@ -719,7 +719,7 @@ def _unselect_profile(self, profile_id):
+             self._revert_rootpw_changes()
+             self._rule_data = None
+ 
+-        self._active_profile = None
++        self._active_profile = ""
+ 
+     @async_action_wait
+     def _select_profile(self, profile_id):

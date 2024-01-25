@@ -1,0 +1,22 @@
+From c72b95146650b0debc36b8da546b60a9d5482ab3 Mon Sep 17 00:00:00 2001
+From: Matej Tyc <matyc@redhat.com>
+Date: Fri, 15 Oct 2021 15:28:24 +0200
+Subject: [PATCH] Fix bad destination for the parsed content fingerprint
+
+---
+ org_fedora_oscap/service/kickstart.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/org_fedora_oscap/service/kickstart.py b/org_fedora_oscap/service/kickstart.py
+index d6f22ac..dc1a100 100644
+--- a/org_fedora_oscap/service/kickstart.py
++++ b/org_fedora_oscap/service/kickstart.py
+@@ -140,7 +140,7 @@ def _parse_fingerprint(self, value):
+             msg = "Unsupported fingerprint"
+             raise KickstartValueError(msg)
+ 
+-        self.fingerprint = value
++        self.policy_data.fingerprint = value
+ 
+     def _parse_certificates(self, value):
+         self.policy_data.certificates = value

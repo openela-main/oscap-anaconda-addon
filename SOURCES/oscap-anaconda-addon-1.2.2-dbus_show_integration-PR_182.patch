@@ -1,0 +1,39 @@
+From 20843d815a82d10cba773f4e10e9a45c57d5e12e Mon Sep 17 00:00:00 2001
+From: Vendula Poncova <vponcova@redhat.com>
+Date: Wed, 18 Aug 2021 10:54:20 +0200
+Subject: [PATCH] Don't show the OSCAP spoke if the OSCAP DBus module is
+ disabled
+
+Add-ons can be disabled in the Anaconda configuration files. Without the fix,
+the OSCAP DBus module is started on demand by the OSCAP spoke even though it
+shouldn't be activated. In the future, it will result in a failure of the
+installer.
+
+Related: rhbz#1994003
+---
+ org_fedora_oscap/gui/spokes/oscap.py | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/org_fedora_oscap/gui/spokes/oscap.py b/org_fedora_oscap/gui/spokes/oscap.py
+index 36c8d7a..fe26076 100644
+--- a/org_fedora_oscap/gui/spokes/oscap.py
++++ b/org_fedora_oscap/gui/spokes/oscap.py
+@@ -36,6 +36,7 @@
+ from org_fedora_oscap.structures import PolicyData
+ 
+ from pyanaconda.modules.common.constants.services import USERS
++from pyanaconda.modules.common.util import is_module_available
+ from pyanaconda.threading import threadMgr, AnacondaThread
+ from pyanaconda.ui.gui.spokes import NormalSpoke
+ from pyanaconda.ui.communication import hubQ
+@@ -203,6 +204,10 @@ class OSCAPSpoke(NormalSpoke):
+     # as it is displayed inside the spoke as the spoke label,
+     # and spoke labels are all uppercase by a convention.
+ 
++    @classmethod
++    def should_run(cls, environment, data):
++        return is_module_available(OSCAP)
++
+     # methods defined by API and helper methods #
+     def __init__(self, data, storage, payload):
+         """

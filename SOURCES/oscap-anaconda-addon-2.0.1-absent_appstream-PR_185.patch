@@ -1,0 +1,191 @@
+From c92205d5a5c788eeac84a6e67956a3e0540ab565 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Mat=C4=9Bj=20T=C3=BD=C4=8D?= <matyc@redhat.com>
+Date: Mon, 3 Jan 2022 17:31:49 +0100
+Subject: [PATCH 1/2] Add oscap sanity check before attempting remediation
+
+If something is obviously wrong with the scanner, then don't attempt to remediate
+and try to show relevant information in a dialog window.
+---
+ org_fedora_oscap/common.py               | 39 +++++++++++++++++++-----
+ org_fedora_oscap/service/installation.py | 11 +++++++
+ tests/test_common.py                     |  8 +++++
+ tests/test_installation.py               |  3 +-
+ 4 files changed, 52 insertions(+), 9 deletions(-)
+
+diff --git a/org_fedora_oscap/common.py b/org_fedora_oscap/common.py
+index c432168..eeb27fc 100644
+--- a/org_fedora_oscap/common.py
++++ b/org_fedora_oscap/common.py
+@@ -171,7 +171,8 @@ def execute(self, ** kwargs):
+             proc = subprocess.Popen(self.args, stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE, ** kwargs)
+         except OSError as oserr:
+-            msg = "Failed to run the oscap tool: %s" % oserr
++            msg = ("Failed to execute command '{command_string}': {oserr}"
++                   .format(command_string=command_string, oserr=oserr))
+             raise OSCAPaddonError(msg)
+ 
+         (stdout, stderr) = proc.communicate()
+@@ -247,6 +248,34 @@ def _run_oscap_gen_fix(profile, fpath, template, ds_id="", xccdf_id="",
+     return proc.stdout
+ 
+ 
++def do_chroot(chroot):
++    """Helper function doing the chroot if requested."""
++    if chroot and chroot != "/":
++        os.chroot(chroot)
++        os.chdir("/")
++
++
++def assert_scanner_works(chroot, executable="oscap"):
++    args = [executable, "--version"]
++    command = " ".join(args)
++
++    try:
++        proc = subprocess.Popen(
++            args, preexec_fn=lambda: do_chroot(chroot),
++            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
++        (stdout, stderr) = proc.communicate()
++        stderr = stderr.decode(errors="replace")
++    except OSError as exc:
++        msg = _(f"Basic invocation '{command}' fails: {str(exc)}")
++        raise OSCAPaddonError(msg)
++    if proc.returncode != 0:
++        msg = _(
++            f"Basic scanner invocation '{command}' exited "
++            "with non-zero error code {proc.returncode}: {stderr}")
++        raise OSCAPaddonError(msg)
++    return True
++
++
+ def run_oscap_remediate(profile, fpath, ds_id="", xccdf_id="", tailoring="",
+                         chroot=""):
+     """
+@@ -276,12 +305,6 @@ def run_oscap_remediate(profile, fpath, ds_id="", xccdf_id="", tailoring="",
+     if not profile:
+         return ""
+ 
+-    def do_chroot():
+-        """Helper function doing the chroot if requested."""
+-        if chroot and chroot != "/":
+-            os.chroot(chroot)
+-            os.chdir("/")
+-
+     # make sure the directory for the results exists
+     results_dir = os.path.dirname(RESULTS_PATH)
+     if chroot:
+@@ -306,7 +329,7 @@ def do_chroot():
+     args.append(fpath)
+ 
+     proc = SubprocessLauncher(args)
+-    proc.execute(preexec_fn=do_chroot)
++    proc.execute(preexec_fn=lambda: do_chroot(chroot))
+     proc.log_messages()
+ 
+     if proc.returncode not in (0, 2):
+diff --git a/org_fedora_oscap/service/installation.py b/org_fedora_oscap/service/installation.py
+index 2da8559..d909c44 100644
+--- a/org_fedora_oscap/service/installation.py
++++ b/org_fedora_oscap/service/installation.py
+@@ -239,6 +239,17 @@ def name(self):
+ 
+     def run(self):
+         """Run the task."""
++        try:
++            common.assert_scanner_works(
++                chroot=self._sysroot, executable="oscap")
++        except Exception as exc:
++            msg_lines = [_(
++                "The 'oscap' scanner doesn't work in the installed system: {error}"
++                .format(error=str(exc)))]
++            msg_lines.append(_("As a result, the installed system can't be hardened."))
++            terminate("\n".join(msg_lines))
++            return
++
+         common.run_oscap_remediate(
+             self._policy_data.profile_id,
+             self._target_content_path,
+diff --git a/tests/test_common.py b/tests/test_common.py
+index 9f7a16a..4f25379 100644
+--- a/tests/test_common.py
++++ b/tests/test_common.py
+@@ -77,6 +77,14 @@ def _run_oscap(mock_subprocess, additional_args):
+     return expected_args, kwargs
+ 
+ 
++def test_oscap_works():
++    assert common.assert_scanner_works(chroot="/")
++    with pytest.raises(common.OSCAPaddonError, match="No such file"):
++        common.assert_scanner_works(chroot="/", executable="i_dont_exist")
++    with pytest.raises(common.OSCAPaddonError, match="non-zero"):
++        common.assert_scanner_works(chroot="/", executable="false")
++
++
+ def test_run_oscap_remediate_profile_only(mock_subprocess, monkeypatch):
+     return run_oscap_remediate_profile(
+         mock_subprocess, monkeypatch,
+diff --git a/tests/test_installation.py b/tests/test_installation.py
+index 5749a94..f819c3b 100644
+--- a/tests/test_installation.py
++++ b/tests/test_installation.py
+@@ -115,4 +115,5 @@ def test_remediate_system_task(sysroot_path, content_path, tailoring_path):
+     )
+ 
+     assert task.name == "Remediate the system"
+-    task.run()
++    with pytest.raises(installation.NonCriticalInstallationError, match="No such file"):
++        task.run()
+
+From ea2dbf5017445875b1c0e4ee27899c8dde292c98 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Mat=C4=9Bj=20T=C3=BD=C4=8D?= <matyc@redhat.com>
+Date: Mon, 3 Jan 2022 17:42:31 +0100
+Subject: [PATCH 2/2] Don't raise exceptions in execute()
+
+Those result in tracebacks during the installation,
+while a dialog window presents a more useful form of user interaction.
+---
+ org_fedora_oscap/service/installation.py | 27 ++++++++++++++----------
+ 1 file changed, 16 insertions(+), 11 deletions(-)
+
+diff --git a/org_fedora_oscap/service/installation.py b/org_fedora_oscap/service/installation.py
+index d909c44..290da40 100644
+--- a/org_fedora_oscap/service/installation.py
++++ b/org_fedora_oscap/service/installation.py
+@@ -210,9 +210,9 @@ def run(self):
+             )
+ 
+             if ret != 0:
+-                raise common.ExtractionError(
+-                    "Failed to install content RPM to the target system"
+-                )
++                msg = _(f"Failed to install content RPM to the target system.")
++                terminate(msg)
++                return
+         else:
+             pattern = utils.join_paths(common.INSTALLATION_CONTENT_DIR, "*")
+             utils.universal_copy(pattern, target_content_dir)
+@@ -250,11 +250,16 @@ def run(self):
+             terminate("\n".join(msg_lines))
+             return
+ 
+-        common.run_oscap_remediate(
+-            self._policy_data.profile_id,
+-            self._target_content_path,
+-            self._policy_data.datastream_id,
+-            self._policy_data.xccdf_id,
+-            self._target_tailoring_path,
+-            chroot=self._sysroot
+-        )
++        try:
++            common.run_oscap_remediate(
++                self._policy_data.profile_id,
++                self._target_content_path,
++                self._policy_data.datastream_id,
++                self._policy_data.xccdf_id,
++                self._target_tailoring_path,
++                chroot=self._sysroot
++            )
++        except Exception as exc:
++            msg = _(f"Something went wrong during the final hardening: {str(exc)}.")
++            terminate(msg)
++            return

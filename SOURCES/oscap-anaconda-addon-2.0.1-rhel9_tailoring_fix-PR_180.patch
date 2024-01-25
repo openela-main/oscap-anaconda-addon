@@ -1,0 +1,29 @@
+From a306b736f144260721dfae25f0b268353d6760c5 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Jan=20=C4=8Cern=C3=BD?= <jcerny@redhat.com>
+Date: Thu, 25 Nov 2021 15:15:14 +0100
+Subject: [PATCH] Fix tailoring
+
+Fixes an error during installation caused during tailoring
+
+Addressing:
+dasbus.error.DBusError: Content evaluation and remediation with the oscap tool failed: OpenSCAP Error: Unable to open file: '/tmp/openscap_data/usr/share/xml/scap/sc_tailoring/tailoring-xccdf.xml' [/builddir/build/BUILD/openscap-1.3.5/src/source/oscap_source.c:288]
+
+This is proabably a typo coming from 87509fb6ee22b6eeaa66ea4ae85ebf5abd353e14
+which is only in rhel9-branch.
+---
+ org_fedora_oscap/service/oscap.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/org_fedora_oscap/service/oscap.py b/org_fedora_oscap/service/oscap.py
+index 4237a47..65da08b 100755
+--- a/org_fedora_oscap/service/oscap.py
++++ b/org_fedora_oscap/service/oscap.py
+@@ -221,7 +221,7 @@ def install_with_tasks(self):
+                 sysroot=conf.target.system_root,
+                 policy_data=self.policy_data,
+                 target_content_path=common.get_postinst_content_path(self.policy_data),
+-                target_tailoring_path=common.get_preinst_tailoring_path(self.policy_data)
++                target_tailoring_path=common.get_postinst_tailoring_path(self.policy_data)
+             )
+         ]
+ 

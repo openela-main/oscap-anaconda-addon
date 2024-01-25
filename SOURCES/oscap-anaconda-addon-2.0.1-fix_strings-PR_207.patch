@@ -1,0 +1,72 @@
+From 1b96504a8bbc198cce11647a0c3a65e1a3ffaba1 Mon Sep 17 00:00:00 2001
+From: Matej Tyc <matyc@redhat.com>
+Date: Fri, 13 May 2022 14:44:45 +0200
+Subject: [PATCH] Fix strings for translations
+
+The input of the _() function has to be a static string,
+and it was in those cases a formatted one,
+which didn't match the translation data.
+---
+ org_fedora_oscap/rule_handling.py | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/org_fedora_oscap/rule_handling.py b/org_fedora_oscap/rule_handling.py
+index 244aac8..635446e 100644
+--- a/org_fedora_oscap/rule_handling.py
++++ b/org_fedora_oscap/rule_handling.py
+@@ -707,10 +707,11 @@ def eval_rules(self, ksdata, storage, report_only=False):
+         messages = []
+         packages_data = get_packages_data()
+ 
++        msg_installed_template = _(
++            "package '%s' has been added to the list of to be installed packages")
+         # add messages for the already added packages
+         for pkg in self._added_pkgs:
+-            msg = _("package '%s' has been added to the list of to be installed "
+-                    "packages" % pkg)
++            msg = msg_installed_template % pkg
+             messages.append(RuleMessage(self.__class__,
+                                         common.MESSAGE_TYPE_INFO, msg))
+ 
+@@ -724,11 +725,12 @@ def eval_rules(self, ksdata, storage, report_only=False):
+                 self._added_pkgs.add(pkg)
+                 packages_data.packages.append(pkg)
+ 
+-            msg = _("package '%s' has been added to the list of to be installed "
+-                    "packages" % pkg)
++            msg = msg_installed_template % pkg
+             messages.append(RuleMessage(self.__class__,
+                                         common.MESSAGE_TYPE_INFO, msg))
+ 
++        msg_excluded_template = _(
++            "package '%s' has been added to the list of excluded packages")
+         # now do the same for the packages that should be excluded
+         # add messages for the already excluded packages
+         for pkg in self._removed_pkgs:
+@@ -736,13 +738,12 @@ def eval_rules(self, ksdata, storage, report_only=False):
+                 msg = _(
+                     "package '{package}' has been added to the list "
+                     "of excluded packages, but it can't be removed "
+-                    "from the current software selection without breaking the installation."
+-                    .format(package=pkg))
++                    "from the current software selection without breaking the installation.")
++                msg = msg.format(package=pkg)
+                 messages.append(RuleMessage(self.__class__,
+                                             common.MESSAGE_TYPE_FATAL, msg))
+             else:
+-                msg = _("package '%s' has been added to the list of excluded "
+-                        "packages" % pkg)
++                msg = msg_excluded_template % pkg
+                 messages.append(RuleMessage(self.__class__,
+                                             common.MESSAGE_TYPE_INFO, msg))
+ 
+@@ -756,8 +757,7 @@ def eval_rules(self, ksdata, storage, report_only=False):
+                 self._removed_pkgs.add(pkg)
+                 packages_data.excluded_packages.append(pkg)
+ 
+-            msg = _("package '%s' has been added to the list of excluded "
+-                    "packages" % pkg)
++            msg = msg_excluded_template % pkg
+             messages.append(RuleMessage(self.__class__,
+                                         common.MESSAGE_TYPE_INFO, msg))
+ 

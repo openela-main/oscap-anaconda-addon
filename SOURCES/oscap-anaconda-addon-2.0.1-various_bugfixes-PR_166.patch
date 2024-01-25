@@ -1,0 +1,460 @@
+From aeb0e2ed5a524c5d4e5b72b2b11ea74a5119d45a Mon Sep 17 00:00:00 2001
+From: Matej Tyc <matyc@redhat.com>
+Date: Mon, 2 Aug 2021 17:23:17 +0200
+Subject: [PATCH 1/3] Improve logging
+
+Make all log entries identifiable easily.
+---
+ org_fedora_oscap/common.py               |  4 ++--
+ org_fedora_oscap/content_discovery.py    | 16 +++++++++++-----
+ org_fedora_oscap/gui/spokes/oscap.py     | 19 ++++++++++++-------
+ org_fedora_oscap/rule_handling.py        |  8 ++++----
+ org_fedora_oscap/service/installation.py |  6 +++---
+ org_fedora_oscap/service/kickstart.py    |  2 +-
+ org_fedora_oscap/service/oscap.py        | 12 ++++++------
+ 7 files changed, 39 insertions(+), 28 deletions(-)
+
+diff --git a/org_fedora_oscap/common.py b/org_fedora_oscap/common.py
+index a307baa..c432168 100644
+--- a/org_fedora_oscap/common.py
++++ b/org_fedora_oscap/common.py
+@@ -564,7 +564,7 @@ def get_content_name(data):
+ def get_raw_preinst_content_path(data):
+     """Path to the raw (unextracted, ...) pre-installation content file"""
+     if data.content_type == "scap-security-guide":
+-        log.debug("Using scap-security-guide, no single content file")
++        log.debug("OSCAP addon: Using scap-security-guide, no single content file")
+         return None
+ 
+     content_name = get_content_name(data)
+@@ -667,7 +667,7 @@ def set_packages_data(data: PackagesConfigurationData):
+     payload_proxy = get_payload_proxy()
+ 
+     if payload_proxy.Type != PAYLOAD_TYPE_DNF:
+-        log.debug("The payload doesn't support packages.")
++        log.debug("OSCAP addon: The payload doesn't support packages.")
+         return
+ 
+     return payload_proxy.SetPackages(
+diff --git a/org_fedora_oscap/content_discovery.py b/org_fedora_oscap/content_discovery.py
+index 894f3e1..bc14ef1 100644
+--- a/org_fedora_oscap/content_discovery.py
++++ b/org_fedora_oscap/content_discovery.py
+@@ -98,7 +98,7 @@ def fetch_content(self, what_if_fail, ca_certs_path=""):
+     def _fetch_files(self, scheme, path, destdir, ca_certs_path, what_if_fail):
+         with self.activity_lock:
+             if self.now_fetching_or_processing:
+-                msg = "Strange, it seems that we are already fetching something."
++                msg = "OSCAP Addon: Strange, it seems that we are already fetching something."
+                 log.warn(msg)
+                 return
+             self.now_fetching_or_processing = True
+@@ -175,7 +175,7 @@ def finish_content_fetch(self, fetching_thread_name, fingerprint, report_callbac
+ 
+     def _verify_fingerprint(self, dest_filename, fingerprint=""):
+         if not fingerprint:
+-            log.info("No fingerprint provided, skipping integrity check")
++            log.info("OSCAP Addon: No fingerprint provided, skipping integrity check")
+             return
+ 
+         hash_obj = utils.get_hashing_algorithm(fingerprint)
+@@ -183,15 +183,19 @@ def _verify_fingerprint(self, dest_filename, fingerprint=""):
+                                             hash_obj)
+         if digest != fingerprint:
+             log.error(
++                "OSCAP Addon: "
+                 f"File {dest_filename} failed integrity check - assumed a "
+                 f"{hash_obj.name} hash and '{fingerprint}', got '{digest}'"
+             )
+-            msg = _(f"Integrity check of the content failed - {hash_obj.name} hash didn't match")
++            msg = _(f"OSCAP Addon: Integrity check of the content failed - {hash_obj.name} hash didn't match")
+             raise content_handling.ContentCheckError(msg)
+         log.info(f"Integrity check passed using {hash_obj.name} hash")
+ 
+     def _finish_actual_fetch(self, wait_for, fingerprint, report_callback, dest_filename):
+-        threadMgr.wait(wait_for)
++        if wait_for:
++            log.info(f"OSCAP Addon: Waiting for thread {wait_for}")
++            threadMgr.wait(wait_for)
++            log.info(f"OSCAP Addon: Finished waiting for thread {wait_for}")
+         actually_fetched_content = wait_for is not None
+ 
+         if fingerprint and dest_filename:
+@@ -201,6 +205,7 @@ def _finish_actual_fetch(self, wait_for, fingerprint, report_callback, dest_file
+ 
+         structured_content = ObtainedContent(self.CONTENT_DOWNLOAD_LOCATION)
+         content_type = self.get_content_type(str(dest_filename))
++        log.info(f"OSCAP Addon: started to look at the content")
+         if content_type in ("archive", "rpm"):
+             structured_content.add_content_archive(dest_filename)
+ 
+@@ -211,6 +216,7 @@ def _finish_actual_fetch(self, wait_for, fingerprint, report_callback, dest_file
+         if fingerprint and dest_filename:
+             structured_content.record_verification(dest_filename)
+ 
++        log.info(f"OSCAP Addon: finished looking at the content")
+         return structured_content
+ 
+     def _gather_available_files(self, actually_fetched_content, dest_filename):
+@@ -232,7 +238,7 @@ def _gather_available_files(self, actually_fetched_content, dest_filename):
+                     )
+                 except common.ExtractionError as err:
+                     msg = f"Failed to extract the '{dest_filename}' archive: {str(err)}"
+-                    log.error(msg)
++                    log.error("OSCAP Addon: " + msg)
+                     raise err
+ 
+             elif content_type == "file":
+diff --git a/org_fedora_oscap/gui/spokes/oscap.py b/org_fedora_oscap/gui/spokes/oscap.py
+index 76e508f..332e956 100644
+--- a/org_fedora_oscap/gui/spokes/oscap.py
++++ b/org_fedora_oscap/gui/spokes/oscap.py
+@@ -331,6 +331,7 @@ def initialize(self):
+ 
+         # if no content was specified and SSG is available, use it
+         if not self._policy_data.content_type and common.ssg_available():
++            log.info("OSCAP Addon: Defaulting to local content")
+             self._policy_data.content_type = "scap-security-guide"
+             self._policy_data.content_path = common.SSG_DIR + common.SSG_CONTENT
+ 
+@@ -351,7 +352,7 @@ def initialize(self):
+             self._fetch_data_and_initialize()
+ 
+     def _handle_error(self, exception):
+-        log.error(str(exception))
++        log.error("OSCAP Addon: " + str(exception))
+         if isinstance(exception, KickstartValueError):
+             self._invalid_url()
+         elif isinstance(exception, common.OSCAPaddonNetworkError):
+@@ -365,7 +366,7 @@ def _handle_error(self, exception):
+         elif isinstance(exception, content_handling.ContentCheckError):
+             self._integrity_check_failed()
+         else:
+-            log.exception("Unknown exception occurred", exc_info=exception)
++            log.exception("OSCAP Addon: Unknown exception occurred", exc_info=exception)
+             self._general_content_problem()
+ 
+     def _render_selected(self, column, renderer, model, itr, user_data=None):
+@@ -385,6 +386,7 @@ def _fetch_data_and_initialize(self):
+ 
+         thread_name = None
+         if self._policy_data.content_url and self._policy_data.content_type != "scap-security-guide":
++            log.info(f"OSCAP Addon: Actually fetching content from somewhere")
+             thread_name = self.content_bringer.fetch_content(
+                 self._handle_error, self._policy_data.certificates)
+ 
+@@ -442,7 +444,7 @@ def update_progress_label(msg):
+                 msg += f" with tailoring {preinst_tailoring_path}"
+             else:
+                 msg += " without considering tailoring"
+-            log.info(msg)
++            log.info("OSCAP Addon: " + msg)
+ 
+             self._content_handler = scap_content_handler.SCAPContentHandler(
+                 preinst_content_path,
+@@ -456,7 +458,7 @@ def update_progress_label(msg):
+ 
+             return
+ 
+-        log.info("OAA: Done with analysis")
++        log.info("OSCAP Addon: Done with analysis")
+ 
+         self._ds_checklists = self._content_handler.get_data_streams_checklists()
+         if self._using_ds:
+@@ -592,7 +594,7 @@ def _update_profiles_store(self):
+         try:
+             profiles = self._content_handler.get_profiles()
+         except scap_content_handler.SCAPContentHandlerError as e:
+-            log.warning(str(e))
++            log.warning("OSCAP Addon: " + str(e))
+             self._invalid_content()
+ 
+         for profile in profiles:
+@@ -736,7 +738,7 @@ def _select_profile(self, profile_id):
+                 ds, xccdf, common.get_preinst_tailoring_path(self._policy_data))
+         except common.OSCAPaddonError as exc:
+             log.error(
+-                "Failed to get rules for the profile '{}': {}"
++                "OSCAP Addon: Failed to get rules for the profile '{}': {}"
+                 .format(profile_id, str(exc)))
+             self._set_error(
+                 "Failed to get rules for the profile '{}'"
+@@ -908,6 +910,7 @@ def refresh(self):
+     def _refresh_ui(self):
+         """Refresh the UI elements."""
+         if not self._content_defined:
++            log.info("OSCAP Addon: Content not defined")
+             # hide the control buttons
+             really_hide(self._control_buttons)
+ 
+@@ -1156,7 +1159,9 @@ def on_fetch_button_clicked(self, *args):
+         with self._fetch_flag_lock:
+             if self._fetching:
+                 # some other fetching/pre-processing running, give up
+-                log.warn("Clicked the fetch button, although the GUI is in the fetching mode.")
++                log.warn(
++                    "OSCAP Addon: "
++                    "Clicked the fetch button, although the GUI is in the fetching mode.")
+                 return
+ 
+         # prevent user from changing the URL in the meantime
+diff --git a/org_fedora_oscap/rule_handling.py b/org_fedora_oscap/rule_handling.py
+index c478aa0..244aac8 100644
+--- a/org_fedora_oscap/rule_handling.py
++++ b/org_fedora_oscap/rule_handling.py
+@@ -261,7 +261,7 @@ def new_rule(self, rule):
+         try:
+             actions[first_word](rule)
+         except (ModifiedOptionParserException, KeyError) as e:
+-            log.warning("Unknown OSCAP Addon rule '{}': {}".format(rule, e))
++            log.warning("OSCAP Addon: Unknown OSCAP Addon rule '{}': {}".format(rule, e))
+ 
+     def eval_rules(self, ksdata, storage, report_only=False):
+         """:see: RuleHandler.eval_rules"""
+@@ -565,7 +565,7 @@ def eval_rules(self, ksdata, storage, report_only=False):
+             # root password set
+             if users_proxy.IsRootPasswordCrypted:
+                 msg = _("cannot check root password length (password is crypted)")
+-                log.warning("cannot check root password length (password is crypted)")
++                log.warning("OSCAP Addon: cannot check root password length (password is crypted)")
+                 return [RuleMessage(self.__class__,
+                                     common.MESSAGE_TYPE_WARNING, msg)]
+             elif len(users_proxy.RootPassword) < self._minlen:
+@@ -880,7 +880,7 @@ def eval_rules(self, ksdata, storage, report_only=False):
+ 
+                 kdump_proxy.KdumpEnabled = self._kdump_enabled
+             else:
+-                log.warning("com_redhat_kdump is not installed. "
++                log.warning("OSCAP Addon: com_redhat_kdump is not installed. "
+                             "Skipping kdump configuration")
+ 
+         return messages
+@@ -894,7 +894,7 @@ def revert_changes(self, ksdata, storage):
+             if self._kdump_enabled is not None:
+                 kdump_proxy.KdumpEnabled = self._kdump_default_enabled
+         else:
+-            log.warning("com_redhat_kdump is not installed. "
++            log.warning("OSCAP Addon: com_redhat_kdump is not installed. "
+                         "Skipping reverting kdump configuration")
+ 
+         self._kdump_enabled = None
+diff --git a/org_fedora_oscap/service/installation.py b/org_fedora_oscap/service/installation.py
+index e3a1d0f..2da8559 100644
+--- a/org_fedora_oscap/service/installation.py
++++ b/org_fedora_oscap/service/installation.py
+@@ -28,14 +28,14 @@
+ from org_fedora_oscap.content_handling import ContentCheckError
+ from org_fedora_oscap import content_discovery
+ 
+-log = logging.getLogger(__name__)
++log = logging.getLogger("anaconda")
+ 
+ 
+ REQUIRED_PACKAGES = ("openscap", "openscap-scanner",)
+ 
+ 
+ def _handle_error(exception):
+-    log.error("Failed to fetch and initialize SCAP content!")
++    log.error("OSCAP Addon: Failed to fetch and initialize SCAP content!")
+ 
+     if isinstance(exception, ContentCheckError):
+         msg = _("The integrity check of the security content failed.")
+@@ -87,7 +87,7 @@ def run(self):
+ 
+         content = self.content_bringer.finish_content_fetch(
+             fetching_thread_name, self._policy_data.fingerprint,
+-            lambda msg: log.info(msg), content_dest, _handle_error)
++            lambda msg: log.info("OSCAP Addon: " + msg), content_dest, _handle_error)
+ 
+         if not content:
+             # this shouldn't happen because error handling is supposed to
+diff --git a/org_fedora_oscap/service/kickstart.py b/org_fedora_oscap/service/kickstart.py
+index 341c6c5..d6f22ac 100644
+--- a/org_fedora_oscap/service/kickstart.py
++++ b/org_fedora_oscap/service/kickstart.py
+@@ -25,7 +25,7 @@
+ from org_fedora_oscap import common, utils
+ from org_fedora_oscap.structures import PolicyData
+ 
+-log = logging.getLogger(__name__)
++log = logging.getLogger("anaconda")
+ 
+ __all__ = ["OSCAPKickstartSpecification"]
+ 
+diff --git a/org_fedora_oscap/service/oscap.py b/org_fedora_oscap/service/oscap.py
+index d491060..4237a47 100755
+--- a/org_fedora_oscap/service/oscap.py
++++ b/org_fedora_oscap/service/oscap.py
+@@ -34,7 +34,7 @@
+ from org_fedora_oscap.service.oscap_interface import OSCAPInterface
+ from org_fedora_oscap.structures import PolicyData
+ 
+-log = logging.getLogger(__name__)
++log = logging.getLogger("anaconda")
+ 
+ __all__ = ["OSCAPService"]
+ 
+@@ -71,7 +71,7 @@ def policy_enabled(self, value):
+         """
+         self._policy_enabled = value
+         self.policy_enabled_changed.emit()
+-        log.debug("Policy enabled is set to '%s'.", value)
++        log.debug("OSCAP Addon: Policy enabled is set to '%s'.", value)
+ 
+     @property
+     def policy_data(self):
+@@ -89,7 +89,7 @@ def policy_data(self, value):
+         """
+         self._policy_data = value
+         self.policy_data_changed.emit()
+-        log.debug("Policy data is set to '%s'.", value)
++        log.debug("OSCAP Addon: Policy data is set to '%s'.", value)
+ 
+     @property
+     def installation_enabled(self):
+@@ -150,7 +150,7 @@ def collect_requirements(self):
+         :return: a list of requirements
+         """
+         if not self.installation_enabled:
+-            log.debug("The installation is disabled. Skip the requirements.")
++            log.debug("OSCAP Addon: The installation is disabled. Skip the requirements.")
+             return []
+ 
+         requirements = [
+@@ -180,7 +180,7 @@ def configure_with_tasks(self):
+         :return: a list of tasks
+         """
+         if not self.installation_enabled:
+-            log.debug("The installation is disabled. Skip the configuration.")
++            log.debug("OSCAP Addon: The installation is disabled. Skip the configuration.")
+             return []
+ 
+         tasks = [
+@@ -205,7 +205,7 @@ def install_with_tasks(self):
+         :return: a list of tasks
+         """
+         if not self.installation_enabled:
+-            log.debug("The installation is disabled. Skip the installation.")
++            log.debug("OSCAP Addon: The installation is disabled. Skip the installation.")
+             return []
+ 
+         tasks = [
+
+From b081e32012b93177167d3f7d0cc2024deb50e965 Mon Sep 17 00:00:00 2001
+From: Matej Tyc <matyc@redhat.com>
+Date: Mon, 2 Aug 2021 17:24:15 +0200
+Subject: [PATCH 2/3] Save addon data when using local content
+
+Addon loads its data from the shared storage upon refresh,
+which caused it to overwrite clicking on the "use SSG content" button.
+
+Now the data is saved after clicking that button, and convenience
+load/save methods were introduced.
+---
+ org_fedora_oscap/gui/spokes/oscap.py | 27 +++++++++++++++------------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
+
+diff --git a/org_fedora_oscap/gui/spokes/oscap.py b/org_fedora_oscap/gui/spokes/oscap.py
+index 332e956..4425757 100644
+--- a/org_fedora_oscap/gui/spokes/oscap.py
++++ b/org_fedora_oscap/gui/spokes/oscap.py
+@@ -232,11 +232,8 @@ def __init__(self, data, storage, payload):
+         # the proxy to OSCAP DBus module
+         self._oscap_module = OSCAP.get_proxy()
+ 
+-        # the security policy data
+-        self._policy_enabled = self._oscap_module.PolicyEnabled
+-        self._policy_data = PolicyData.from_structure(
+-            self._oscap_module.PolicyData
+-        )
++        self._policy_data = PolicyData()
++        self._load_policy_data()
+ 
+         # used for changing profiles
+         self._rule_data = None
+@@ -334,6 +331,7 @@ def initialize(self):
+             log.info("OSCAP Addon: Defaulting to local content")
+             self._policy_data.content_type = "scap-security-guide"
+             self._policy_data.content_path = common.SSG_DIR + common.SSG_CONTENT
++            self._save_policy_data()
+ 
+         if not self._content_defined:
+             # nothing more to be done now, the spoke is ready
+@@ -351,6 +349,16 @@ def initialize(self):
+             # else fetch data
+             self._fetch_data_and_initialize()
+ 
++    def _save_policy_data(self):
++        self._oscap_module.PolicyData = PolicyData.to_structure(self._policy_data)
++        self._oscap_module.PolicyEnabled = self._policy_enabled
++
++    def _load_policy_data(self):
++        self._policy_data.update_from(PolicyData.from_structure(
++            self._oscap_module.PolicyData
++        ))
++        self._policy_enabled = self._oscap_module.PolicyEnabled
++
+     def _handle_error(self, exception):
+         log.error("OSCAP Addon: " + str(exception))
+         if isinstance(exception, KickstartValueError):
+@@ -897,13 +905,7 @@ def refresh(self):
+         :see: pyanaconda.ui.common.UIObject.refresh
+ 
+         """
+-        # update the security policy data
+-        self._policy_enabled = self._oscap_module.PolicyEnabled
+-        fresh_data = PolicyData.from_structure(
+-            self._oscap_module.PolicyData
+-        )
+-
+-        self._policy_data.update_from(fresh_data)
++        self._load_policy_data()
+         # update the UI elements
+         self._refresh_ui()
+ 
+@@ -1202,4 +1204,5 @@ def on_change_content_clicked(self, *args):
+ 
+     def on_use_ssg_clicked(self, *args):
+         self.content_bringer.use_system_content()
++        self._save_policy_data()
+         self._fetch_data_and_initialize()
+
+From fee170f54aeb9f649ab891781532012a7b069f8f Mon Sep 17 00:00:00 2001
+From: Matej Tyc <matyc@redhat.com>
+Date: Tue, 3 Aug 2021 11:01:59 +0200
+Subject: [PATCH 3/3] Refactor content identification
+
+Don't use the multiprocessing pool - it sometimes creates probems during
+its initialization:
+https://bugzilla.redhat.com/show_bug.cgi?id=1989434
+---
+ org_fedora_oscap/content_handling.py | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/org_fedora_oscap/content_handling.py b/org_fedora_oscap/content_handling.py
+index f2af22f..65d5a28 100644
+--- a/org_fedora_oscap/content_handling.py
++++ b/org_fedora_oscap/content_handling.py
+@@ -111,9 +111,8 @@ def parse_HTML_from_content(content):
+ 
+ 
+ def identify_files(fpaths):
+-    with multiprocessing.Pool(os.cpu_count()) as p:
+-        labels = p.map(get_doc_type, fpaths)
+-    return {path: label for (path, label) in zip(fpaths, labels)}
++    result = {path: get_doc_type(path) for path in fpaths}
++    return result
+ 
+ 
+ def get_doc_type(file_path):
+@@ -131,7 +130,9 @@ def get_doc_type(file_path):
+     except UnicodeDecodeError:
+         # 'oscap info' supplied weird output, which happens when it tries
+         # to explain why it can't examine e.g. a JPG.
+-        return None
++        pass
++    except Exception as e:
++        log.warning(f"OSCAP addon: Unexpected error when looking at {file_path}: {str(e)}")
+     log.info("OSCAP addon: Identified {file_path} as {content_type}"
+              .format(file_path=file_path, content_type=content_type))
+     return content_type

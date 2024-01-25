@@ -1,0 +1,74 @@
+From 55cc3b685dd5a9ca6059459f41876dd9f19f900d Mon Sep 17 00:00:00 2001
+From: Matej Tyc <matyc@redhat.com>
+Date: Tue, 11 Oct 2022 17:07:28 +0200
+Subject: [PATCH 1/2] Remove redundant message
+
+The send_ready already performs what the removed call
+could aim to accomplish.
+---
+ org_fedora_oscap/gui/spokes/oscap.py | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/org_fedora_oscap/gui/spokes/oscap.py b/org_fedora_oscap/gui/spokes/oscap.py
+index c57b1cd..4f8702a 100644
+--- a/org_fedora_oscap/gui/spokes/oscap.py
++++ b/org_fedora_oscap/gui/spokes/oscap.py
+@@ -150,7 +150,6 @@ def decorated(self, *args, **kwargs):
+         self._ready = True
+         # pylint: disable-msg=E1101
+         hubQ.send_ready(self.__class__.__name__, True)
+-        hubQ.send_message(self.__class__.__name__, self.status)
+ 
+         return ret
+ 
+
+From 3f7c560947a17d1696899857e70ebcc8cba44019 Mon Sep 17 00:00:00 2001
+From: Matej Tyc <matyc@redhat.com>
+Date: Thu, 13 Oct 2022 17:19:17 +0200
+Subject: [PATCH 2/2] Increase robustness of fetching state detection
+
+It is not completely practical to rely on locks alone,
+and we can elliminate some corner cases by looking
+whether well-known UI threads exist.
+---
+ org_fedora_oscap/gui/spokes/oscap.py | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/org_fedora_oscap/gui/spokes/oscap.py b/org_fedora_oscap/gui/spokes/oscap.py
+index 4f8702a..d8e6ce2 100644
+--- a/org_fedora_oscap/gui/spokes/oscap.py
++++ b/org_fedora_oscap/gui/spokes/oscap.py
+@@ -363,11 +363,14 @@ def _render_selected(self, column, renderer, model, itr, user_data=None):
+         else:
+             renderer.set_property("stock-id", None)
+ 
++    def _still_fetching(self):
++        return self._fetching or threadMgr.get('OSCAPguiWaitForDataFetchThread')
++
+     def _fetch_data_and_initialize(self):
+         """Fetch data from a specified URL and initialize everything."""
+ 
+         with self._fetch_flag_lock:
+-            if self._fetching:
++            if self._still_fetching():
+                 # prevent multiple fetches running simultaneously
+                 return
+             self._fetching = True
+@@ -894,7 +897,7 @@ def refresh(self):
+ 
+             # hide the progress box, no progress now
+             with self._fetch_flag_lock:
+-                if not self._fetching:
++                if not self._still_fetching():
+                     really_hide(self._progress_box)
+ 
+                     self._content_url_entry.set_sensitive(True)
+@@ -1117,7 +1120,7 @@ def on_fetch_button_clicked(self, *args):
+         """Handler for the Fetch button"""
+ 
+         with self._fetch_flag_lock:
+-            if self._fetching:
++            if self._still_fetching():
+                 # some other fetching/pre-processing running, give up
+                 log.warn("Clicked the fetch button, although the GUI is in the fetching mode.")
+                 return

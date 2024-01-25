@@ -1,0 +1,206 @@
+From 8eacfad08b3c27aa9510f2c3337356581bd9bebd Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Mat=C4=9Bj=20T=C3=BD=C4=8D?= <matyc@redhat.com>
+Date: Mon, 3 Jan 2022 17:31:49 +0100
+Subject: [PATCH 1/3] Add oscap sanity check before attempting remediation
+
+If something is obviously wrong with the scanner, then don't attempt to remediate
+and try to show relevant information in a dialog window.
+---
+ org_fedora_oscap/common.py   | 39 ++++++++++++++++++++++++++++--------
+ org_fedora_oscap/ks/oscap.py | 11 ++++++++++
+ tests/test_common.py         |  8 ++++++++
+ 3 files changed, 50 insertions(+), 8 deletions(-)
+
+diff --git a/org_fedora_oscap/common.py b/org_fedora_oscap/common.py
+index 884bbc8..05829ce 100644
+--- a/org_fedora_oscap/common.py
++++ b/org_fedora_oscap/common.py
+@@ -139,7 +139,8 @@ def execute(self, ** kwargs):
+             proc = subprocess.Popen(self.args, stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE, ** kwargs)
+         except OSError as oserr:
+-            msg = "Failed to run the oscap tool: %s" % oserr
++            msg = ("Failed to execute command '{command_string}': {oserr}"
++                   .format(command_string=command_string, oserr=oserr))
+             raise OSCAPaddonError(msg)
+ 
+         (stdout, stderr) = proc.communicate()
+@@ -215,6 +216,34 @@ def _run_oscap_gen_fix(profile, fpath, template, ds_id="", xccdf_id="",
+     return proc.stdout
+ 
+ 
++def do_chroot(chroot):
++    """Helper function doing the chroot if requested."""
++    if chroot and chroot != "/":
++        os.chroot(chroot)
++        os.chdir("/")
++
++
++def assert_scanner_works(chroot, executable="oscap"):
++    args = [executable, "--version"]
++    command = " ".join(args)
++
++    try:
++        proc = subprocess.Popen(
++            args, preexec_fn=lambda: do_chroot(chroot),
++            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
++        (stdout, stderr) = proc.communicate()
++        stderr = stderr.decode(errors="replace")
++    except OSError as exc:
++        msg = _(f"Basic invocation '{command}' fails: {str(exc)}")
++        raise OSCAPaddonError(msg)
++    if proc.returncode != 0:
++        msg = _(
++            f"Basic scanner invocation '{command}' exited "
++            "with non-zero error code {proc.returncode}: {stderr}")
++        raise OSCAPaddonError(msg)
++    return True
++
++
+ def run_oscap_remediate(profile, fpath, ds_id="", xccdf_id="", tailoring="",
+                         chroot=""):
+     """
+@@ -244,12 +273,6 @@ def run_oscap_remediate(profile, fpath, ds_id="", xccdf_id="", tailoring="",
+     if not profile:
+         return ""
+ 
+-    def do_chroot():
+-        """Helper function doing the chroot if requested."""
+-        if chroot and chroot != "/":
+-            os.chroot(chroot)
+-            os.chdir("/")
+-
+     # make sure the directory for the results exists
+     results_dir = os.path.dirname(RESULTS_PATH)
+     if chroot:
+@@ -274,7 +297,7 @@ def do_chroot():
+     args.append(fpath)
+ 
+     proc = SubprocessLauncher(args)
+-    proc.execute(preexec_fn=do_chroot)
++    proc.execute(preexec_fn=lambda: do_chroot(chroot))
+     proc.log_messages()
+ 
+     if proc.returncode not in (0, 2):
+diff --git a/org_fedora_oscap/ks/oscap.py b/org_fedora_oscap/ks/oscap.py
+index 65d74cf..da1600f 100644
+--- a/org_fedora_oscap/ks/oscap.py
++++ b/org_fedora_oscap/ks/oscap.py
+@@ -488,6 +488,17 @@ def execute(self, storage, ksdata, users, payload):
+             # selected
+             return
+ 
++        try:
++            common.assert_scanner_works(
++                chroot=conf.target.system_root, executable="oscap")
++        except Exception as exc:
++            msg_lines = [_(
++                "The 'oscap' scanner doesn't work in the installed system: {error}"
++                .format(error=str(exc)))]
++            msg_lines.append(_("As a result, the installed system can't be hardened."))
++            self._terminate("\n".join(msg_lines))
++            return
++
+         target_content_dir = utils.join_paths(conf.target.system_root,
+                                               common.TARGET_CONTENT_DIR)
+         utils.ensure_dir_exists(target_content_dir)
+diff --git a/tests/test_common.py b/tests/test_common.py
+index 9f7a16a..4f25379 100644
+--- a/tests/test_common.py
++++ b/tests/test_common.py
+@@ -77,6 +77,14 @@ def _run_oscap(mock_subprocess, additional_args):
+     return expected_args, kwargs
+ 
+ 
++def test_oscap_works():
++    assert common.assert_scanner_works(chroot="/")
++    with pytest.raises(common.OSCAPaddonError, match="No such file"):
++        common.assert_scanner_works(chroot="/", executable="i_dont_exist")
++    with pytest.raises(common.OSCAPaddonError, match="non-zero"):
++        common.assert_scanner_works(chroot="/", executable="false")
++
++
+ def test_run_oscap_remediate_profile_only(mock_subprocess, monkeypatch):
+     return run_oscap_remediate_profile(
+         mock_subprocess, monkeypatch,
+
+From b54cf2bddba56e5b776fb60514a5e29d47c74cac Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Mat=C4=9Bj=20T=C3=BD=C4=8D?= <matyc@redhat.com>
+Date: Mon, 3 Jan 2022 17:42:31 +0100
+Subject: [PATCH 2/3] Don't raise exceptions in execute()
+
+Those result in tracebacks during the installation,
+while a dialog window presents a more useful form of user interaction.
+---
+ org_fedora_oscap/ks/oscap.py | 18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
+
+diff --git a/org_fedora_oscap/ks/oscap.py b/org_fedora_oscap/ks/oscap.py
+index da1600f..d3f0dbe 100644
+--- a/org_fedora_oscap/ks/oscap.py
++++ b/org_fedora_oscap/ks/oscap.py
+@@ -513,8 +513,9 @@ def execute(self, storage, ksdata, users, payload):
+             ret = util.execInSysroot("yum", ["-y", "--nogpg", "install",
+                                              self.raw_postinst_content_path])
+             if ret != 0:
+-                raise common.ExtractionError("Failed to install content "
+-                                             "RPM to the target system")
++                msg = _(f"Failed to install content RPM to the target system.")
++                self._terminate(msg)
++                return
+         elif self.content_type == "scap-security-guide":
+             # nothing needed
+             pass
+@@ -525,10 +526,15 @@ def execute(self, storage, ksdata, users, payload):
+         if os.path.exists(self.preinst_tailoring_path):
+             shutil.copy2(self.preinst_tailoring_path, target_content_dir)
+ 
+-        common.run_oscap_remediate(self.profile_id, self.postinst_content_path,
+-                                   self.datastream_id, self.xccdf_id,
+-                                   self.postinst_tailoring_path,
+-                                   chroot=conf.target.system_root)
++        try:
++            common.run_oscap_remediate(self.profile_id, self.postinst_content_path,
++                                       self.datastream_id, self.xccdf_id,
++                                       self.postinst_tailoring_path,
++                                       chroot=conf.target.system_root)
++        except Exception as exc:
++            msg = _(f"Something went wrong during the final hardening: {str(exc)}.")
++            self._terminate(msg)
++            return
+ 
+     def clear_all(self):
+         """Clear all the stored values."""
+
+From 00d770d1b7f8e1f0734e93da227f1c3e445033c8 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Mat=C4=9Bj=20T=C3=BD=C4=8D?= <matyc@redhat.com>
+Date: Mon, 3 Jan 2022 17:44:12 +0100
+Subject: [PATCH 3/3] Change the error feedback based on the installation mode
+
+The original approach was confusing, because non-interactive installs run without any user input,
+and the message assumed that the user is able to answer installer's questions.
+---
+ org_fedora_oscap/ks/oscap.py | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/org_fedora_oscap/ks/oscap.py b/org_fedora_oscap/ks/oscap.py
+index d3f0dbe..ef34448 100644
+--- a/org_fedora_oscap/ks/oscap.py
++++ b/org_fedora_oscap/ks/oscap.py
+@@ -372,13 +372,14 @@ def postinst_tailoring_path(self):
+                                 self.tailoring_path)
+ 
+     def _terminate(self, message):
+-        message += "\n" + _("The installation should be aborted.")
+-        message += " " + _("Do you wish to continue anyway?")
+         if flags.flags.automatedInstall and not flags.flags.ksprompt:
+             # cannot have ask in a non-interactive kickstart
+             # installation
++            message += "\n" + _("Aborting the installation.")
+             raise errors.CmdlineError(message)
+ 
++        message += "\n" + _("The installation should be aborted.")
++        message += " " + _("Do you wish to continue anyway?")
+         answ = errors.errorHandler.ui.showYesNoQuestion(message)
+         if answ == errors.ERROR_CONTINUE:
+             # prevent any futher actions here by switching to the dry

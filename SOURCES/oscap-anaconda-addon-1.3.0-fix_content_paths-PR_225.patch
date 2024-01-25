@@ -1,0 +1,202 @@
+From 08d3da5640e5c16cda4e79cc13ac7921f1ebd964 Mon Sep 17 00:00:00 2001
+From: Matej Tyc <matyc@redhat.com>
+Date: Tue, 15 Nov 2022 15:37:28 +0100
+Subject: [PATCH 1/2] Fix handling of content paths
+
+Archives and ready-to-use content use paths differently.
+
+Archives get unpacked into a directory, where they need to be unpacked,
+analyzed, and cross-checked with e.g. the supplied content path,
+whereas ready-to-use content can be used directly.
+
+As the current codebase doesn't untangle all possible ways how to obtain
+existing content in a way of decomposing those into layers, this change
+just makes the current code working at the expense of making it worse to
+maintain.
+---
+ org_fedora_oscap/content_discovery.py | 34 ++++++++++++++++++---------
+ org_fedora_oscap/ks/oscap.py          |  6 ++++-
+ tests/test_content_discovery.py       | 21 +++++++++++++++++
+ 3 files changed, 49 insertions(+), 12 deletions(-)
+
+diff --git a/org_fedora_oscap/content_discovery.py b/org_fedora_oscap/content_discovery.py
+index e9cf34a..2b71b1f 100644
+--- a/org_fedora_oscap/content_discovery.py
++++ b/org_fedora_oscap/content_discovery.py
+@@ -25,6 +25,14 @@ def is_network(scheme):
+         for net_prefix in data_fetch.NET_URL_PREFIXES)
+ 
+ 
++def path_is_present_among_paths(path, paths):
++    absolute_path = os.path.abspath(path)
++    for second_path in paths:
++        if absolute_path == os.path.abspath(second_path):
++            return True
++    return False
++
++
+ class ContentBringer:
+     CONTENT_DOWNLOAD_LOCATION = pathlib.Path(common.INSTALLATION_CONTENT_DIR)
+     DEFAULT_SSG_DATA_STREAM_PATH = f"{common.SSG_DIR}/{common.SSG_CONTENT}"
+@@ -170,7 +178,7 @@ def _verify_fingerprint(self, dest_filename, fingerprint=""):
+             raise content_handling.ContentCheckError(msg)
+ 
+     def allow_one_expected_tailoring_or_no_tailoring(self, labelled_files):
+-        expected_tailoring = self._addon_data.tailoring_path
++        expected_tailoring = self._addon_data.preinst_tailoring_path
+         tailoring_label = CONTENT_TYPES["TAILORING"]
+         if expected_tailoring:
+             labelled_files = self.reduce_files(labelled_files, expected_tailoring, [tailoring_label])
+@@ -182,7 +190,7 @@ def allow_one_expected_tailoring_or_no_tailoring(self, labelled_files):
+         return labelled_files
+ 
+     def filter_discovered_content(self, labelled_files):
+-        expected_path = self._addon_data.content_path
++        expected_path = self._addon_data.preinst_content_path
+         categories = (CONTENT_TYPES["DATASTREAM"], CONTENT_TYPES["XCCDF_CHECKLIST"])
+         if expected_path:
+             labelled_files = self.reduce_files(labelled_files, expected_path, categories)
+@@ -198,7 +206,7 @@ def filter_discovered_content(self, labelled_files):
+ 
+     def reduce_files(self, labelled_files, expected_path, categories):
+         reduced_files = dict()
+-        if expected_path not in labelled_files:
++        if not path_is_present_among_paths(expected_path, labelled_files.keys()):
+             msg = (
+                 f"Expected a file {expected_path} to be part of the supplied content, "
+                 f"but it was not the case, got only {list(labelled_files.keys())}"
+@@ -225,13 +233,9 @@ def _finish_actual_fetch(self, wait_for, fingerprint, report_callback, dest_file
+             structured_content.add_content_archive(dest_filename)
+ 
+         labelled_filenames = content_handling.identify_files(fpaths)
+-        labelled_relative_filenames = {
+-            os.path.relpath(path, self.CONTENT_DOWNLOAD_LOCATION): label
+-            for path, label in labelled_filenames.items()}
+-        labelled_relative_filenames = self.filter_discovered_content(labelled_relative_filenames)
++        labelled_filenames = self.filter_discovered_content(labelled_filenames)
+ 
+-        for rel_fname, label in labelled_relative_filenames.items():
+-            fname = self.CONTENT_DOWNLOAD_LOCATION / rel_fname
++        for fname, label in labelled_filenames.items():
+             structured_content.add_file(str(fname), label)
+ 
+         if fingerprint and dest_filename:
+@@ -274,11 +278,18 @@ def use_downloaded_content(self, content):
+         # We know that we have ended up with a datastream-like content,
+         # but if we can't convert an archive to a datastream.
+         # self._addon_data.content_type = "datastream"
+-        self._addon_data.content_path = str(preferred_content.relative_to(content.root))
++        content_type = self._addon_data.content_type
++        if content_type in ("archive", "rpm"):
++            self._addon_data.content_path = str(preferred_content.relative_to(content.root))
++        else:
++            self._addon_data.content_path = str(preferred_content)
+ 
+         preferred_tailoring = self.get_preferred_tailoring(content)
+         if content.tailoring:
+-            self._addon_data.tailoring_path = str(preferred_tailoring.relative_to(content.root))
++            if content_type in ("archive", "rpm"):
++                self._addon_data.tailoring_path = str(preferred_tailoring.relative_to(content.root))
++            else:
++                self._addon_data.tailoring_path = str(preferred_tailoring)
+ 
+     def use_system_content(self, content=None):
+         self._addon_data.clear_all()
+@@ -372,6 +383,7 @@ def _xccdf_content(self):
+ 
+     def find_expected_usable_content(self, relative_expected_content_path):
+         content_path = self.root / relative_expected_content_path
++        content_path = content_path.resolve()
+         eligible_main_content = (self._datastream_content(), self._xccdf_content())
+ 
+         if content_path in eligible_main_content:
+diff --git a/org_fedora_oscap/ks/oscap.py b/org_fedora_oscap/ks/oscap.py
+index dac273d..7d4a131 100644
+--- a/org_fedora_oscap/ks/oscap.py
++++ b/org_fedora_oscap/ks/oscap.py
+@@ -179,7 +179,11 @@ def _parse_profile_id(self, value):
+         self.profile_id = value
+ 
+     def _parse_content_path(self, value):
+-        # need to be checked?
++        if self.content_type in ("archive", "rpm") and os.path.isabs(self.content_path):
++            msg = (
++                "When using archives-like content input, the corresponding content path "
++                "has to be relative, but got '{self.content_path}'.")
++            raise KickstartValueError(msg)
+         self.content_path = value
+ 
+     def _parse_cpe_path(self, value):
+diff --git a/tests/test_content_discovery.py b/tests/test_content_discovery.py
+index 5463c9a..d6e14d9 100644
+--- a/tests/test_content_discovery.py
++++ b/tests/test_content_discovery.py
+@@ -1,3 +1,5 @@
++import os
++
+ import pytest
+ 
+ import org_fedora_oscap.content_discovery as tested_module
+@@ -46,3 +48,22 @@ def test_reduce(labelled_files):
+ 
+     reduced = bringer.reduce_files(labelled_files, "cpe", ["C"])
+     assert reduced == labelled_files
++
++
++def test_path_presence_detection():
++    list_of_paths = ["file1", os.path.abspath("file2"), os.path.abspath("dir///file3")]
++
++    list_of_paths_in_list = [
++        "file1", os.path.abspath("file1"), "./file1",
++        "file2", "dir/..//file2",
++        "dir/../dir/file3", "dir/file3",
++    ]
++    list_of_paths_not_in_list = [
++        "../file1", "file3"
++    ]
++
++    for path in list_of_paths_in_list:
++        assert tested_module.path_is_present_among_paths(path, list_of_paths)
++
++    for path in list_of_paths_not_in_list:
++        assert not tested_module.path_is_present_among_paths(path, list_of_paths)
+
+From 786ec5d90d12a1321fbff86f5d8d4a534059ad22 Mon Sep 17 00:00:00 2001
+From: Matej Tyc <matyc@redhat.com>
+Date: Wed, 16 Nov 2022 15:35:09 +0100
+Subject: [PATCH 2/2] Compare paths according to their equivalence
+
+not according their arbitrary string form
+---
+ org_fedora_oscap/content_discovery.py | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/org_fedora_oscap/content_discovery.py b/org_fedora_oscap/content_discovery.py
+index 2b71b1f..42c61e0 100644
+--- a/org_fedora_oscap/content_discovery.py
++++ b/org_fedora_oscap/content_discovery.py
+@@ -25,10 +25,14 @@ def is_network(scheme):
+         for net_prefix in data_fetch.NET_URL_PREFIXES)
+ 
+ 
++def paths_are_equivalent(p1, p2):
++    return os.path.abspath(p1) == os.path.abspath(p2)
++
++
+ def path_is_present_among_paths(path, paths):
+     absolute_path = os.path.abspath(path)
+     for second_path in paths:
+-        if absolute_path == os.path.abspath(second_path):
++        if paths_are_equivalent(path, second_path):
+             return True
+     return False
+ 
+@@ -213,7 +217,7 @@ def reduce_files(self, labelled_files, expected_path, categories):
+             )
+             raise RuntimeError(msg)
+         for path, label in labelled_files.items():
+-            if label in categories and path != expected_path:
++            if label in categories and not paths_are_equivalent(path, expected_path):
+                 continue
+             reduced_files[path] = label
+         return reduced_files

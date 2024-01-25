@@ -1,0 +1,66 @@
+From 58d4847dc4b55b9d4982be9505127679beca87c6 Mon Sep 17 00:00:00 2001
+From: Matej Tyc <matyc@redhat.com>
+Date: Wed, 18 Jan 2023 16:36:36 +0100
+Subject: [PATCH 1/2] Handle the URL with missing ://
+
+---
+ org_fedora_oscap/content_discovery.py | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
+
+diff --git a/org_fedora_oscap/content_discovery.py b/org_fedora_oscap/content_discovery.py
+index 42c61e0..23fdafd 100644
+--- a/org_fedora_oscap/content_discovery.py
++++ b/org_fedora_oscap/content_discovery.py
+@@ -67,9 +67,14 @@ def content_uri(self):
+ 
+     @content_uri.setter
+     def content_uri(self, uri):
+-        scheme, path = uri.split("://", 1)
+-        self.content_uri_path = path
+-        self.content_uri_scheme = scheme
++        scheme_and_maybe_path = uri.split("://")
++        if len(scheme_and_maybe_path) == 1:
++            msg = (
++                f"Invalid supplied content URL '{uri}', "
++                "use the 'scheme://path' form.")
++            raise KickstartValueError(msg)
++        self.content_uri_path = scheme_and_maybe_path[1]
++        self.content_uri_scheme = scheme_and_maybe_path[0]
+ 
+     def fetch_content(self, what_if_fail, ca_certs_path=""):
+         """
+@@ -80,7 +85,10 @@ def fetch_content(self, what_if_fail, ca_certs_path=""):
+                 should handle them in the calling layer.
+             ca_certs_path: Path to the HTTPS certificate file
+         """
+-        self.content_uri = self._addon_data.content_url
++        try:
++            self.content_uri = self._addon_data.content_url
++        except Exception as exc:
++            what_if_fail(exc)
+         shutil.rmtree(self.CONTENT_DOWNLOAD_LOCATION, ignore_errors=True)
+         self.CONTENT_DOWNLOAD_LOCATION.mkdir(parents=True, exist_ok=True)
+         fetching_thread_name = self._fetch_files(
+
+From cbfdae4f43ade3ef982a967f3e2844e66db3f9a0 Mon Sep 17 00:00:00 2001
+From: Matej Tyc <matyc@redhat.com>
+Date: Wed, 18 Jan 2023 16:36:53 +0100
+Subject: [PATCH 2/2] Stop fetching when there is an invalid profile
+
+---
+ org_fedora_oscap/gui/spokes/oscap.py | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/org_fedora_oscap/gui/spokes/oscap.py b/org_fedora_oscap/gui/spokes/oscap.py
+index d8e6ce2..54eae1e 100644
+--- a/org_fedora_oscap/gui/spokes/oscap.py
++++ b/org_fedora_oscap/gui/spokes/oscap.py
+@@ -469,6 +469,8 @@ def update_progress_label(msg):
+         if self._addon_data.profile_id and not selected:
+             # profile ID given, but it was impossible to select it -> invalid
+             # profile ID given
++            with self._fetch_flag_lock:
++                self._fetching = False
+             self._invalid_profile_id()
+             return
+ 

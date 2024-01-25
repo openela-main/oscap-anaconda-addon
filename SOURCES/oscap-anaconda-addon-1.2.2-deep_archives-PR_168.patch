@@ -1,0 +1,51 @@
+From 3377a914f4668af3d72216468ae192bc300890f9 Mon Sep 17 00:00:00 2001
+From: Matej Tyc <matyc@redhat.com>
+Date: Mon, 9 Aug 2021 15:45:58 +0200
+Subject: [PATCH 1/2] Fix archive handling in GUI installs
+
+GUI downloads an archive, so the ensuing installation doesn't have to.
+However, the installation has to be able to discover files recovered
+from the archive.
+The fix makes sure that files are discovered also in subdirectories.
+---
+ org_fedora_oscap/content_discovery.py | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/org_fedora_oscap/content_discovery.py b/org_fedora_oscap/content_discovery.py
+index f6b4d27..5fc7343 100644
+--- a/org_fedora_oscap/content_discovery.py
++++ b/org_fedora_oscap/content_discovery.py
+@@ -196,7 +196,8 @@ def _gather_available_files(self, actually_fetched_content, dest_filename):
+             if not dest_filename:  # using scap-security-guide
+                 fpaths = [self.DEFAULT_SSG_DATA_STREAM_PATH]
+             else:  # Using downloaded XCCDF/OVAL/DS/tailoring
+-                fpaths = glob(str(self.CONTENT_DOWNLOAD_LOCATION / "*.xml"))
++                fpaths = pathlib.Path(self.CONTENT_DOWNLOAD_LOCATION).rglob("*")
++                fpaths = [str(p) for p in fpaths if p.is_file()]
+         else:
+             dest_filename = pathlib.Path(dest_filename)
+             # RPM is an archive at this phase
+
+From 191df327e3e51f486fb655e97acac30222c264fa Mon Sep 17 00:00:00 2001
+From: Matej Tyc <matyc@redhat.com>
+Date: Mon, 9 Aug 2021 15:48:50 +0200
+Subject: [PATCH 2/2] Improve logging
+
+Logs written to log files can contain specific details.
+---
+ org_fedora_oscap/ks/oscap.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/org_fedora_oscap/ks/oscap.py b/org_fedora_oscap/ks/oscap.py
+index d1b8c9e..65d74cf 100644
+--- a/org_fedora_oscap/ks/oscap.py
++++ b/org_fedora_oscap/ks/oscap.py
+@@ -393,7 +393,7 @@ def _terminate(self, message):
+                 time.sleep(100000)
+ 
+     def _handle_error(self, exception):
+-        log.error("Failed to fetch and initialize SCAP content!")
++        log.error(f"Failed to fetch and initialize SCAP content: {str(exception)}")
+ 
+         if isinstance(exception, ContentCheckError):
+             msg = _("The integrity check of the security content failed.")

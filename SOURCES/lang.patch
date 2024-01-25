@@ -1,6 +1,6 @@
 diff -U3 -N -r a/po/ca.po b/po/ca.po
 --- a/po/ca.po	2021-07-02 17:17:04.000000000 +0200
-+++ b/po/ca.po	2023-02-08 14:41:10.534059221 +0100
++++ b/po/ca.po	2023-07-19 13:47:28.583054415 +0200
 @@ -9,7 +9,7 @@
  msgstr ""
  "Project-Id-Version: PACKAGE VERSION\n"
@@ -364,7 +364,7 @@ diff -U3 -N -r a/po/ca.po b/po/ca.po
  #: tmp/oscap.glade.h:2
 diff -U3 -N -r a/po/cs.po b/po/cs.po
 --- a/po/cs.po	2021-07-02 17:17:04.000000000 +0200
-+++ b/po/cs.po	2023-02-08 14:41:10.534059221 +0100
++++ b/po/cs.po	2023-07-19 13:47:28.583054415 +0200
 @@ -12,11 +12,11 @@
  msgstr ""
  "Project-Id-Version: PACKAGE VERSION\n"
@@ -747,7 +747,7 @@ diff -U3 -N -r a/po/cs.po b/po/cs.po
  #~ "%s\n"
 diff -U3 -N -r a/po/de.po b/po/de.po
 --- a/po/de.po	2021-07-02 17:17:04.000000000 +0200
-+++ b/po/de.po	2023-02-08 14:41:10.534059221 +0100
++++ b/po/de.po	2023-07-19 13:47:28.583054415 +0200
 @@ -3,23 +3,24 @@
  msgstr ""
  "Project-Id-Version: PACKAGE VERSION\n"
@@ -1150,7 +1150,7 @@ diff -U3 -N -r a/po/de.po b/po/de.po
  
 diff -U3 -N -r a/po/es.po b/po/es.po
 --- a/po/es.po	2021-07-02 17:17:04.000000000 +0200
-+++ b/po/es.po	2023-02-08 14:41:10.534059221 +0100
++++ b/po/es.po	2023-07-19 13:47:28.583054415 +0200
 @@ -13,7 +13,7 @@
  msgstr ""
  "Project-Id-Version: PACKAGE VERSION\n"
@@ -1516,7 +1516,7 @@ diff -U3 -N -r a/po/es.po b/po/es.po
  #: tmp/oscap.glade.h:2
 diff -U3 -N -r a/po/fi.po b/po/fi.po
 --- a/po/fi.po	2021-07-02 17:17:04.000000000 +0200
-+++ b/po/fi.po	2023-02-08 14:41:10.534059221 +0100
++++ b/po/fi.po	2023-07-19 13:47:28.583054415 +0200
 @@ -6,41 +6,44 @@
  msgstr ""
  "Project-Id-Version: PACKAGE VERSION\n"
@@ -1903,7 +1903,7 @@ diff -U3 -N -r a/po/fi.po b/po/fi.po
  #~ "%s\n"
 diff -U3 -N -r a/po/fr.po b/po/fr.po
 --- a/po/fr.po	2021-07-02 17:17:04.000000000 +0200
-+++ b/po/fr.po	2023-02-08 14:41:10.534059221 +0100
++++ b/po/fr.po	2023-07-19 13:47:28.583054415 +0200
 @@ -12,43 +12,44 @@
  msgstr ""
  "Project-Id-Version: PACKAGE VERSION\n"
@@ -2311,7 +2311,7 @@ diff -U3 -N -r a/po/fr.po b/po/fr.po
  #~ "%s\n"
 diff -U3 -N -r a/po/hr.po b/po/hr.po
 --- a/po/hr.po	1970-01-01 01:00:00.000000000 +0100
-+++ b/po/hr.po	2023-02-08 14:41:10.534059221 +0100
++++ b/po/hr.po	2023-07-19 13:47:28.583054415 +0200
 @@ -0,0 +1,342 @@
 +# SOME DESCRIPTIVE TITLE.
 +# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
@@ -2657,7 +2657,7 @@ diff -U3 -N -r a/po/hr.po b/po/hr.po
 +msgstr "_Preuzmi"
 diff -U3 -N -r a/po/hu.po b/po/hu.po
 --- a/po/hu.po	2021-07-02 17:17:04.000000000 +0200
-+++ b/po/hu.po	2023-02-08 14:41:10.534059221 +0100
++++ b/po/hu.po	2023-07-19 13:47:28.583054415 +0200
 @@ -11,24 +11,24 @@
  msgstr ""
  "Project-Id-Version: PACKAGE VERSION\n"
@@ -2668,8 +2668,8 @@ diff -U3 -N -r a/po/hu.po b/po/hu.po
 -"Language-Team: Hungarian (http://www.transifex.com/projects/p/oscap-anaconda-"
 -"addon/language/hu/)\n"
 +"POT-Creation-Date: 2021-07-02 15:52+0200\n"
-+"PO-Revision-Date: 2022-09-25 07:19+0000\n"
-+"Last-Translator: Hoppár Zoltán <hopparz@gmail.com>\n"
++"PO-Revision-Date: 2023-05-10 12:20+0000\n"
++"Last-Translator: Dankaházi (ifj.) István <dankahazi.istvan@gmail.com>\n"
 +"Language-Team: Hungarian <https://translate.fedoraproject.org/projects/"
 +"oscap-anaconda-addon/rhel9-branch/hu/>\n"
  "Language: hu\n"
@@ -2679,7 +2679,7 @@ diff -U3 -N -r a/po/hu.po b/po/hu.po
 -"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 -"X-Generator: Zanata 4.6.2\n"
 +"Plural-Forms: nplurals=2; plural=n != 1;\n"
-+"X-Generator: Weblate 4.14.1\n"
++"X-Generator: Weblate 4.15.2\n"
  
 -#: ../org_fedora_oscap/common.py:326
 +#: ../org_fedora_oscap/common.py:358
@@ -2975,7 +2975,8 @@ diff -U3 -N -r a/po/hu.po b/po/hu.po
 -#: ../org_fedora_oscap/gui/spokes/oscap.py:887
 +#: ../org_fedora_oscap/gui/spokes/oscap.py:921
  msgid " or enter data stream content or archive URL below:"
- msgstr "vagy adjon meg adathalmazt, vagy archiv URL-t alább:"
+-msgstr "vagy adjon meg adathalmazt, vagy archiv URL-t alább:"
++msgstr " vagy adjon meg adathalmazt, vagy archiv URL-t alább:"
  
 -#: ../org_fedora_oscap/gui/spokes/oscap.py:891 tmp/oscap.glade.h:12
 +#: ../org_fedora_oscap/gui/spokes/oscap.py:925 tmp/oscap.glade.h:12
@@ -3030,7 +3031,7 @@ diff -U3 -N -r a/po/hu.po b/po/hu.po
  #: tmp/oscap.glade.h:2
 diff -U3 -N -r a/po/it.po b/po/it.po
 --- a/po/it.po	2021-07-02 17:17:04.000000000 +0200
-+++ b/po/it.po	2023-02-08 14:41:10.535059228 +0100
++++ b/po/it.po	2023-07-19 13:47:28.583054415 +0200
 @@ -4,7 +4,7 @@
  msgstr ""
  "Project-Id-Version: PACKAGE VERSION\n"
@@ -3395,7 +3396,7 @@ diff -U3 -N -r a/po/it.po b/po/it.po
  #: tmp/oscap.glade.h:2
 diff -U3 -N -r a/po/ja.po b/po/ja.po
 --- a/po/ja.po	2021-07-02 17:17:04.000000000 +0200
-+++ b/po/ja.po	2023-02-08 14:41:10.535059228 +0100
++++ b/po/ja.po	2023-07-19 13:47:28.583054415 +0200
 @@ -7,293 +7,288 @@
  msgstr ""
  "Project-Id-Version: PACKAGE VERSION\n"
@@ -3812,7 +3813,7 @@ diff -U3 -N -r a/po/ja.po b/po/ja.po
  #~ "%s\n"
 diff -U3 -N -r a/po/ko.po b/po/ko.po
 --- a/po/ko.po	2021-07-02 17:17:04.000000000 +0200
-+++ b/po/ko.po	2023-02-08 14:41:10.535059228 +0100
++++ b/po/ko.po	2023-07-19 13:47:28.583054415 +0200
 @@ -5,41 +5,41 @@
  msgstr ""
  "Project-Id-Version: PACKAGE VERSION\n"
@@ -4198,7 +4199,7 @@ diff -U3 -N -r a/po/ko.po b/po/ko.po
  #~ "%s\n"
 diff -U3 -N -r a/po/oscap-anaconda-addon.pot b/po/oscap-anaconda-addon.pot
 --- a/po/oscap-anaconda-addon.pot	2021-07-02 15:52:56.000000000 +0200
-+++ b/po/oscap-anaconda-addon.pot	2023-02-08 14:41:10.538059250 +0100
++++ b/po/oscap-anaconda-addon.pot	2023-07-19 13:47:28.585054421 +0200
 @@ -8,7 +8,7 @@
  msgstr ""
  "Project-Id-Version: PACKAGE VERSION\n"
@@ -4382,7 +4383,7 @@ diff -U3 -N -r a/po/oscap-anaconda-addon.pot b/po/oscap-anaconda-addon.pot
  
 diff -U3 -N -r a/po/pl.po b/po/pl.po
 --- a/po/pl.po	2021-07-02 17:17:04.000000000 +0200
-+++ b/po/pl.po	2023-02-08 14:41:10.535059228 +0100
++++ b/po/pl.po	2023-07-19 13:47:28.583054415 +0200
 @@ -25,43 +25,45 @@
  msgstr ""
  "Project-Id-Version: PACKAGE VERSION\n"
@@ -4772,7 +4773,7 @@ diff -U3 -N -r a/po/pl.po b/po/pl.po
  #~ "%s\n"
 diff -U3 -N -r a/po/pt_BR.po b/po/pt_BR.po
 --- a/po/pt_BR.po	2021-07-02 17:17:04.000000000 +0200
-+++ b/po/pt_BR.po	2023-02-08 14:41:10.535059228 +0100
++++ b/po/pt_BR.po	2023-07-19 13:47:28.583054415 +0200
 @@ -11,7 +11,7 @@
  msgstr ""
  "Project-Id-Version: PACKAGE VERSION\n"
@@ -5134,7 +5135,7 @@ diff -U3 -N -r a/po/pt_BR.po b/po/pt_BR.po
  #: tmp/oscap.glade.h:2
 diff -U3 -N -r a/po/pt.po b/po/pt.po
 --- a/po/pt.po	2021-07-02 17:17:04.000000000 +0200
-+++ b/po/pt.po	2023-02-08 14:41:10.535059228 +0100
++++ b/po/pt.po	2023-07-19 13:47:28.583054415 +0200
 @@ -3,7 +3,7 @@
  msgstr ""
  "Project-Id-Version: PACKAGE VERSION\n"
@@ -5471,7 +5472,7 @@ diff -U3 -N -r a/po/pt.po b/po/pt.po
  #: tmp/oscap.glade.h:2
 diff -U3 -N -r a/po/ru.po b/po/ru.po
 --- a/po/ru.po	2021-07-02 17:17:04.000000000 +0200
-+++ b/po/ru.po	2023-02-08 14:41:10.535059228 +0100
++++ b/po/ru.po	2023-07-19 13:47:28.583054415 +0200
 @@ -3,7 +3,7 @@
  msgstr ""
  "Project-Id-Version: PACKAGE VERSION\n"
@@ -5829,7 +5830,7 @@ diff -U3 -N -r a/po/ru.po b/po/ru.po
  #: tmp/oscap.glade.h:2
 diff -U3 -N -r a/po/si.po b/po/si.po
 --- a/po/si.po	2021-07-02 17:17:04.000000000 +0200
-+++ b/po/si.po	2023-02-08 14:41:10.535059228 +0100
++++ b/po/si.po	2023-07-19 13:47:28.583054415 +0200
 @@ -6,21 +6,24 @@
  msgstr ""
  "Project-Id-Version: PACKAGE VERSION\n"
@@ -6166,7 +6167,7 @@ diff -U3 -N -r a/po/si.po b/po/si.po
  #: tmp/oscap.glade.h:2
 diff -U3 -N -r a/po/sr.po b/po/sr.po
 --- a/po/sr.po	2021-07-02 17:17:04.000000000 +0200
-+++ b/po/sr.po	2023-02-08 14:41:10.535059228 +0100
++++ b/po/sr.po	2023-07-19 13:47:28.583054415 +0200
 @@ -9,7 +9,7 @@
  msgstr ""
  "Project-Id-Version: PACKAGE VERSION\n"
@@ -6509,7 +6510,7 @@ diff -U3 -N -r a/po/sr.po b/po/sr.po
  #: tmp/oscap.glade.h:2
 diff -U3 -N -r a/po/sv.po b/po/sv.po
 --- a/po/sv.po	2021-07-02 17:17:04.000000000 +0200
-+++ b/po/sv.po	2023-02-08 14:41:10.535059228 +0100
++++ b/po/sv.po	2023-07-19 13:47:28.583054415 +0200
 @@ -3,43 +3,43 @@
  msgstr ""
  "Project-Id-Version: PACKAGE VERSION\n"
@@ -6904,7 +6905,7 @@ diff -U3 -N -r a/po/sv.po b/po/sv.po
  #~ "%s\n"
 diff -U3 -N -r a/po/uk.po b/po/uk.po
 --- a/po/uk.po	2021-07-02 17:17:04.000000000 +0200
-+++ b/po/uk.po	2023-02-08 14:41:10.535059228 +0100
++++ b/po/uk.po	2023-07-19 13:47:28.583054415 +0200
 @@ -4,42 +4,45 @@
  msgstr ""
  "Project-Id-Version: PACKAGE VERSION\n"
@@ -7295,7 +7296,7 @@ diff -U3 -N -r a/po/uk.po b/po/uk.po
  #~ "%s\n"
 diff -U3 -N -r a/po/zh_CN.po b/po/zh_CN.po
 --- a/po/zh_CN.po	2021-07-02 17:17:04.000000000 +0200
-+++ b/po/zh_CN.po	2023-02-08 14:41:10.535059228 +0100
++++ b/po/zh_CN.po	2023-07-19 13:47:28.583054415 +0200
 @@ -4,40 +4,40 @@
  msgstr ""
  "Project-Id-Version: PACKAGE VERSION\n"
@@ -7696,7 +7697,7 @@ diff -U3 -N -r a/po/zh_CN.po b/po/zh_CN.po
  #~ "%s\n"
 diff -U3 -N -r a/po/zh_TW.po b/po/zh_TW.po
 --- a/po/zh_TW.po	2021-07-02 17:17:04.000000000 +0200
-+++ b/po/zh_TW.po	2023-02-08 14:41:10.535059228 +0100
++++ b/po/zh_TW.po	2023-07-19 13:47:28.583054415 +0200
 @@ -3,7 +3,7 @@
  msgstr ""
  "Project-Id-Version: PACKAGE VERSION\n"

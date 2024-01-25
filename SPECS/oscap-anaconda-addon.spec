@@ -10,7 +10,7 @@
 
 Name:           oscap-anaconda-addon
 Version:        2.0.0
-Release:        16%{?dist}
+Release:        17%{?dist}
 Summary:        Anaconda addon integrating OpenSCAP to the installation process
 
 License:        GPLv2+
@@ -34,6 +34,8 @@ Patch11: 	oscap-anaconda-addon-2.1.0-clicking_fix-PR_223.patch
 Patch12: 	oscap-anaconda-addon-2.1.0-archive_handling-PR_224.patch
 Patch13: 	oscap-anaconda-addon-2.1.0-content_paths-PR_227.patch
 Patch14: 	oscap-anaconda-addon-null-http_only_uri-PR_233.patch
+Patch15: 	oscap-anaconda-addon-2.0.1-tar-extraction-PR_250.patch
+Patch16: 	oscap-anaconda-addon-2.0.1-package-groups-PR_248.patch
 
 BuildArch:      noarch
 BuildRequires:  make
@@ -73,6 +75,11 @@ make install DESTDIR=%{buildroot}
 %doc COPYING ChangeLog README.md
 
 %changelog
+* Wed Jul 19 2023 Jan Černý <jcerny@redhat.com> - 2.0.0-17
+- Update translations (rhbz#2189526)
+- Fix tar file extraction (rhbz#2218875)
+- Fix conflict of tftp package with "network servers" group (rhbz#2172264)
+
 * Wed Feb 08 2023 Matej Tyc <matyc@redhat.com> - 2.0.0-16
 - Update translations
   Resolves: rhbz#2139667

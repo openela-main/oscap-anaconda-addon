@@ -20,7 +20,7 @@ maintain.
  3 files changed, 53 insertions(+), 12 deletions(-)
 
 diff --git a/org_fedora_oscap/content_discovery.py b/org_fedora_oscap/content_discovery.py
-index 4235af7..ebef618 100644
+index 4235af7c..ebef618e 100644
 --- a/org_fedora_oscap/content_discovery.py
 +++ b/org_fedora_oscap/content_discovery.py
 @@ -46,6 +46,14 @@ def clear_all(data):
@@ -111,7 +111,7 @@ index 4235af7..ebef618 100644
  
          if content_path in eligible_main_content:
 diff --git a/org_fedora_oscap/service/kickstart.py b/org_fedora_oscap/service/kickstart.py
-index ce049d1..6698978 100644
+index ce049d1b..6698978a 100644
 --- a/org_fedora_oscap/service/kickstart.py
 +++ b/org_fedora_oscap/service/kickstart.py
 @@ -17,6 +17,7 @@
@@ -139,7 +139,7 @@ index ce049d1..6698978 100644
  
      def _parse_cpe_path(self, value):
 diff --git a/tests/test_content_discovery.py b/tests/test_content_discovery.py
-index 5463c9a..d6e14d9 100644
+index 5463c9a5..d6e14d9f 100644
 --- a/tests/test_content_discovery.py
 +++ b/tests/test_content_discovery.py
 @@ -1,3 +1,5 @@
@@ -183,7 +183,7 @@ not according their arbitrary string form
  1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/org_fedora_oscap/content_discovery.py b/org_fedora_oscap/content_discovery.py
-index ebef618..9da44e7 100644
+index ebef618e..9da44e73 100644
 --- a/org_fedora_oscap/content_discovery.py
 +++ b/org_fedora_oscap/content_discovery.py
 @@ -46,10 +46,14 @@ def clear_all(data):
@@ -227,7 +227,7 @@ Subject: [PATCH 3/3] Fix tests when relative content paths are enforced
  6 files changed, 28 insertions(+), 11 deletions(-)
 
 diff --git a/org_fedora_oscap/content_discovery.py b/org_fedora_oscap/content_discovery.py
-index 9da44e7..61c4930 100644
+index 9da44e73..61c49307 100644
 --- a/org_fedora_oscap/content_discovery.py
 +++ b/org_fedora_oscap/content_discovery.py
 @@ -239,7 +239,7 @@ def reduce_files(self, labelled_files, expected_path, categories):
@@ -240,7 +240,7 @@ index 9da44e7..61c4930 100644
              if label in categories and not paths_are_equivalent(path, expected_path):
                  continue
 diff --git a/org_fedora_oscap/service/installation.py b/org_fedora_oscap/service/installation.py
-index f667479..5ca102c 100644
+index f6674794..5ca102c0 100644
 --- a/org_fedora_oscap/service/installation.py
 +++ b/org_fedora_oscap/service/installation.py
 @@ -23,10 +23,11 @@
@@ -268,7 +268,7 @@ index f667479..5ca102c 100644
      else:
          msg = _("There was an unexpected problem with the supplied content.")
 diff --git a/tests/test_content_discovery.py b/tests/test_content_discovery.py
-index d6e14d9..d664ede 100644
+index d6e14d9f..d664edee 100644
 --- a/tests/test_content_discovery.py
 +++ b/tests/test_content_discovery.py
 @@ -3,6 +3,7 @@
@@ -289,7 +289,7 @@ index d6e14d9..d664ede 100644
  
      reduced = bringer.reduce_files(labelled_files, "cpe", ["C"])
 diff --git a/tests/test_installation.py b/tests/test_installation.py
-index 302f5ed..2cf78db 100644
+index 302f5ed3..2cf78db1 100644
 --- a/tests/test_installation.py
 +++ b/tests/test_installation.py
 @@ -76,7 +76,7 @@ def test_fetch_content_task(caplog, file_path, content_path):
@@ -302,10 +302,10 @@ index 302f5ed..2cf78db 100644
  
  
 diff --git a/tests/test_kickstart.py b/tests/test_kickstart.py
-index d4cfda2..60fe63d 100644
+index d4cfda23..60fe63d8 100644
 --- a/tests/test_kickstart.py
 +++ b/tests/test_kickstart.py
-@@ -163,7 +163,7 @@ def test_rpm(service):
+@@ -160,7 +160,7 @@ def test_rpm(service):
          content-url = http://example.com/oscap_content.rpm
          content-type = RPM
          profile = Web Server
@@ -314,7 +314,16 @@ index d4cfda2..60fe63d 100644
      %end
      """
      check_ks_input(service, ks_in)
-@@ -198,7 +198,7 @@ def test_rpm_with_wrong_suffix(service):
+@@ -169,7 +169,7 @@ def test_rpm(service):
+     %addon com_redhat_oscap
+         content-type = rpm
+         content-url = http://example.com/oscap_content.rpm
+-        content-path = /usr/share/oscap/xccdf.xml
++        content-path = usr/share/oscap/xccdf.xml
+         profile = Web Server
+     %end
+     """
+@@ -195,7 +195,7 @@ def test_rpm_with_wrong_suffix(service):
          content-url = http://example.com/oscap_content.xml
          content-type = RPM
          profile = Web Server

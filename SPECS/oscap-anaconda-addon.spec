@@ -10,7 +10,7 @@
 
 Name:           oscap-anaconda-addon
 Version:        2.0.0
-Release:        17%{?dist}
+Release:        21%{?dist}
 Summary:        Anaconda addon integrating OpenSCAP to the installation process
 
 License:        GPLv2+
@@ -36,6 +36,8 @@ Patch13: 	oscap-anaconda-addon-2.1.0-content_paths-PR_227.patch
 Patch14: 	oscap-anaconda-addon-null-http_only_uri-PR_233.patch
 Patch15: 	oscap-anaconda-addon-2.0.1-tar-extraction-PR_250.patch
 Patch16: 	oscap-anaconda-addon-2.0.1-package-groups-PR_248.patch
+Patch17: 	oscap-anaconda-addon-2.0.1-fix_fips_hashes_PR_255.patch
+Patch18: 	oscap-anaconda-addon-2.0.1-fix_fips_hashes_2_PR_257.patch
 
 BuildArch:      noarch
 BuildRequires:  make
@@ -75,6 +77,18 @@ make install DESTDIR=%{buildroot}
 %doc COPYING ChangeLog README.md
 
 %changelog
+* Wed Nov 06 2024 Evgenii Kolesnikov <ekolesni@redhat.com> - 2.0.0-21
+- Fix Patch18 name (RHEL-40367)
+
+* Wed Nov 06 2024 Evgenii Kolesnikov <ekolesni@redhat.com> - 2.0.0-20
+- Re-fix checksums in FIPS mode (RHEL-40367)
+
+* Mon Oct 21 2024 Evgenii Kolesnikov <ekolesni@redhat.com> - 2.0.0-19
+- Add missing chunk for PR_227 patch file (RHEL-40367)
+
+* Mon Oct 14 2024 Evgenii Kolesnikov <ekolesni@redhat.com> - 2.0.0-18
+- Fix checksums in FIPS mode (RHEL-40367)
+
 * Wed Jul 19 2023 Jan Černý <jcerny@redhat.com> - 2.0.0-17
 - Update translations (rhbz#2189526)
 - Fix tar file extraction (rhbz#2218875)
